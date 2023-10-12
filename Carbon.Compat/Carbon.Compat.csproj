@@ -7,7 +7,6 @@
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
-	<Import Project="$(SolutionDir)\.msbuild\AssemblyName.props" />
 
 	<ItemGroup>
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
