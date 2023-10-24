@@ -40,16 +40,11 @@ internal static class HookProcessor
         Community.Runtime.HookManager.ForceUpdateHooks();
     }
 
-    private static bool _hooks_called = false;
-
-    private static bool InitHooksValidated;
-
     internal static void ApplyPatch()
     {
         Community.Runtime.Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
         {
             HookReload();
-            InitHooksValidated = true;
         });
     #if DEBUG
         Logger.Warn("Patched HookExCTOR");
