@@ -27,7 +27,7 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 
         int postHookIndex = 0;
 
-        CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.InitialHooksInstalled, postHookLoad, new CilInstruction(CilOpCodes.Ldarg_0));
+        CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.HookValidatorRefreshed, postHookLoad, new CilInstruction(CilOpCodes.Ldarg_0));
 
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
         CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);

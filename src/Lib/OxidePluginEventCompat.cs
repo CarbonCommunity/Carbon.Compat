@@ -26,11 +26,11 @@ public partial class OxideCompat
         PluginManagerEvent ev;
         if (loaded)
         {
-	        ev = plugin.__OnAddedToManager as PluginManagerEvent;
+	        ev = plugin.OnAddedToManager as PluginManagerEvent;
         }
         else
         {
-            ev = plugin.__OnRemovedFromManager as PluginManagerEvent;
+            ev = plugin.OnRemovedFromManager as PluginManagerEvent;
         }
 
     #if DEBUG
@@ -45,19 +45,19 @@ public partial class OxideCompat
 
     public static PluginManagerEvent OnAddedToManagerCompat(Plugin plugin)
     {
-        if (plugin.__OnAddedToManager is not PluginManagerEvent)
-            plugin.__OnAddedToManager = new PluginManagerEvent();
+        if (plugin.OnAddedToManager is not PluginManagerEvent)
+            plugin.OnAddedToManager = new PluginManagerEvent();
 
-        PluginManagerEvent ev = (PluginManagerEvent)plugin.__OnAddedToManager;
+        PluginManagerEvent ev = (PluginManagerEvent)plugin.OnAddedToManager;
         return ev;
     }
 
     public static PluginManagerEvent OnRemovedFromManagerCompat(Plugin plugin)
     {
-        if (plugin.__OnRemovedFromManager is not PluginManagerEvent)
-            plugin.__OnRemovedFromManager = new PluginManagerEvent();
+        if (plugin.OnRemovedFromManager is not PluginManagerEvent)
+            plugin.OnRemovedFromManager = new PluginManagerEvent();
 
-        PluginManagerEvent ev = (PluginManagerEvent)plugin.__OnRemovedFromManager;
+        PluginManagerEvent ev = (PluginManagerEvent)plugin.OnRemovedFromManager;
         return ev;
     }
 }

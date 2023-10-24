@@ -10,6 +10,7 @@ public abstract class BaseConverter
     public abstract ImmutableList<IASMPatch> patches { get;}
 
     public abstract string Name { get; }
+
     public class GenInfo
     {
         //public AssemblyReference selfRef;
@@ -25,12 +26,15 @@ public abstract class BaseConverter
             //selfRef = self;
         }
     }
+
     private static ManagedPEImageBuilder builder = new ManagedPEImageBuilder();
     private static ManagedPEFileBuilder file_builder = new ManagedPEFileBuilder();
+
     public byte[] Convert(ModuleDefinition asm)//, out GenInfo info)
     {
         ReferenceImporter importer = new ReferenceImporter(asm);
-        GenInfo info = new GenInfo();//new AssemblyReference(MainConverter.SelfModule.Assembly).ImportWith(importer));
+        GenInfo info = new GenInfo();
+
         foreach (IASMPatch patch in patches)
         {
             patch.Apply(asm, importer, info);

@@ -12,16 +12,21 @@ namespace Carbon.Compat.Lib;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public static partial class OxideCompat
 {
-	internal const string legacy_msg = "Used for oxide backwards compatibility";
+	internal const string LEGACY_MSG = "Used for oxide backwards compatibility";
+
     internal static Dictionary<Assembly, ModLoader.ModPackage> modPackages = new();
+
     public static void RegisterPluginLoader(ExtensionManager self, PluginLoader loader, Extension oxideExt)
     {
         self.RegisterPluginLoader(loader);
-        string asmName = Assembly.GetCallingAssembly().GetName().Name;
+
+        var asmName = Assembly.GetCallingAssembly().GetName().Name;
         Logger.Debug($"Oxide plugin loader call using {loader.GetType().FullName} from assembly {asmName}", 2);
-        Assembly asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
-        string name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
-        string author = oxideExt != null ? oxideExt.Author : "CCL";
+
+        var asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
+        var name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
+        var author = oxideExt != null ? oxideExt.Author : "CCL";
+
         if (!modPackages.TryGetValue(asm, out ModLoader.ModPackage package))
         {
             package = new ModLoader.ModPackage
@@ -33,10 +38,14 @@ public static partial class OxideCompat
         }
         foreach (Type type in loader.CorePlugins)
         {
-            if (type.IsAbstract) continue;
+	        if (type.IsAbstract)
+	        {
+		        continue;
+	        }
+
             try
             {
-                ModLoader.InitializePlugin(type, out RustPlugin plugin, package, precompiled:true, preInit: oxideExt == null ? null :
+                ModLoader.InitializePlugin(type, out RustPlugin plugin, package, precompiled: true, preInit: oxideExt == null ? null :
                     rustPlugin =>
                     {
                         rustPlugin.Version = oxideExt.Version;
@@ -53,15 +62,15 @@ public static partial class OxideCompat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AddConsoleCommand1(global::Oxide.Game.Rust.Libraries.Command Lib, string name, Plugin plugin, Func<ConsoleSystem.Arg, bool> callback)
+    public static void AddConsoleCommand1(global::Oxide.Game.Rust.Libraries.Command cmd, string name, Plugin plugin, Func<ConsoleSystem.Arg, bool> callback)
     {
-        Lib.AddConsoleCommand(name, plugin, callback);
+        cmd.AddConsoleCommand(name, plugin, callback);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void AddChatCommand1(global::Oxide.Game.Rust.Libraries.Command Lib, string name, Plugin plugin, Action<BasePlayer, string, string[]> callback)
+    public static void AddChatCommand1(global::Oxide.Game.Rust.Libraries.Command cmd, string name, Plugin plugin, Action<BasePlayer, string, string[]> callback)
     {
-        Lib.AddChatCommand(name, plugin, callback);
+        cmd.AddChatCommand(name, plugin, callback);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -77,14 +86,14 @@ public static partial class OxideCompat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerOnce(Timers instance, float delay, Action callback, Plugin owner = null)
+    public static Timer TimerOnce(Timers timers, float delay, Action callback, Plugin owner = null)
     {
-        return instance.Once(delay, callback);
+        return timers.Once(delay, callback);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerRepeat(Timers instance, float delay, int reps, Action callback, Plugin owner = null)
+    public static Timer TimerRepeat(Timers timers, float delay, int reps, Action callback, Plugin owner = null)
     {
-        return instance.Repeat(delay, reps, callback);
+        return timers.Repeat(delay, reps, callback);
     }
 }

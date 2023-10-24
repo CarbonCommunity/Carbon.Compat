@@ -5,6 +5,7 @@ using Carbon.Compat.Patches.Oxide;
 using JetBrains.Annotations;
 
 namespace Carbon.Compat.Converters;
+
 [UsedImplicitly]
 public class HarmonyConverter : BaseConverter
 {
@@ -30,10 +31,11 @@ public class HarmonyConverter : BaseConverter
 	    new ReflectionFlagsPatch(),
 	    new AssemblyVersionPatch(),
 
+#if DEBUG
 	    //debug
-    #if DEBUG
 	    new ASMDebugPatch()
-    #endif
+#endif
     }.ToImmutableList();
-    public override string Name => "harmony";
+
+    public override string Name => "Harmony";
 }

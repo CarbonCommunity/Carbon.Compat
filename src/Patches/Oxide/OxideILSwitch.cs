@@ -9,6 +9,8 @@ namespace Carbon.Compat.Patches.Oxide;
 
 public class OxideILSwitch : BaseOxidePatch
 {
+	public static CompatManager Singleton => Community.Runtime.Compat as CompatManager;
+
     private static MethodInfo pluginLoaderMethod = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.RegisterPluginLoader));
     private static MethodInfo consoleCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddConsoleCommand1));
     private static MethodInfo chatCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddChatCommand1));
@@ -49,7 +51,7 @@ public class OxideILSwitch : BaseOxidePatch
                         CIL.Operand is MemberReference aref &&
                         aref.Name == "RegisterPluginLoader" &&
                         aref.Parent is TypeReference atw &&
-                        atw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        atw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Call;
                         CIL.Operand = importer.ImportMethod(pluginLoaderMethod);
@@ -68,7 +70,7 @@ public class OxideILSwitch : BaseOxidePatch
                         asig.ParameterTypes[0].ElementType == ElementType.String &&
                         asig.ParameterTypes[1].FullName == "Oxide.Core.Plugins.Plugin" &&
                         asig.ParameterTypes[2].FullName == "System.Func`2<ConsoleSystem+Arg, System.Boolean>" &&
-                        btw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        btw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Call;
                         CIL.Operand = importer.ImportMethod(consoleCommand1);
@@ -85,7 +87,7 @@ public class OxideILSwitch : BaseOxidePatch
                         bsig.ParameterTypes.Count == 3 &&
                         bsig.ParameterTypes[0].ElementType == ElementType.String &&
                         bsig.ParameterTypes[1].FullName == "Oxide.Core.Plugins.Plugin" &&
-                        ctw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        ctw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         switch (bsig.ParameterTypes[2].FullName)
                         {
@@ -106,7 +108,7 @@ public class OxideILSwitch : BaseOxidePatch
                         dref.Name == "RegisterLibrary" &&
                         dref.Parent is TypeReference dtw &&
                         dtw.FullName == "Oxide.Core.Extensions.ExtensionManager" &&
-                        dtw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        dtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Pop;
                         CIL.Operand = null;
@@ -126,7 +128,7 @@ public class OxideILSwitch : BaseOxidePatch
                         eref.Name == "get_ExtensionDirectory" &&
                         eref.Parent is TypeReference etw &&
                         etw.FullName == "Oxide.Core.OxideMod" &&
-                        etw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        etw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Call;
                         CIL.Operand = importer.ImportMethod(GetExtensionDirectory);
@@ -140,7 +142,7 @@ public class OxideILSwitch : BaseOxidePatch
                         fref.Parent is TypeReference ftw &&
                         ftw.FullName == "Oxide.Plugins.Timers" &&
                         fsig.ParameterTypes[^1].FullName == "Oxide.Core.Plugins.Plugin" &&
-                        ftw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        ftw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         switch (fref.Name.ToString())
                         {
@@ -167,7 +169,7 @@ public class OxideILSwitch : BaseOxidePatch
                         gtw.FullName == "Oxide.Core.OxideMod" &&
                         gspec.Signature.TypeArguments.Count == 1 &&
                         gspec.Signature.TypeArguments[0].FullName == "Oxide.Plugins.Timers" &&
-                        gtw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        gtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Pop;
                         CIL.Operand = null;
@@ -187,7 +189,7 @@ public class OxideILSwitch : BaseOxidePatch
                         href.Parent is TypeReference htw &&
                         htw.FullName == "Oxide.Core.Plugins.Plugin" &&
                         hsig.FieldType.FullName == "Oxide.Core.Plugins.PluginManagerEvent" &&
-                        htw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        htw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         switch (href.Name.ToString())
                         {
@@ -217,7 +219,7 @@ public class OxideILSwitch : BaseOxidePatch
                         isig.ParameterTypes[0].ElementType == ElementType.String &&
                         isig.ParameterTypes[1].FullName == "Carbon.Base.BaseHookable" &&
                         isig.ParameterTypes[2].ElementType == ElementType.String &&
-                        itw.DefinitionAssembly().Name == CompatManager.Manager.Common.Name)
+                        itw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.Operand = importer.ImportMethod(carbonLangGetMessage);
                         for (int idx = 0; idx < carbonLangGetMessageArgLength-isig.ParameterTypes.Count; idx++)

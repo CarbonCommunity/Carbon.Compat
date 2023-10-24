@@ -30,6 +30,9 @@ public static class CodeGenHelpers
         entrypoint.MethodImplementations.Add(new MethodImplementation((IMethodDefOrRef)importer.ImportMethod(AccessTools.Method(typeof(ICarbonAddon), nameof(ICarbonAddon.Awake))), onAwake));
         entrypoint.Methods.Add(onAwake);
 
+        onAwake.CilMethodBody = new CilMethodBody(onAwake);
+        onAwake.CilMethodBody.Instructions.Add(CilOpCodes.Ret);
+
         // define on unload
         unload = new MethodDefinition(nameof(ICarbonAddon.OnUnloaded),
 	        attr,

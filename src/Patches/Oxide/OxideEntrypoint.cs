@@ -1,7 +1,6 @@
 using API.Assembly;
 using API.Events;
 using Carbon.Compat.Converters;
-using Carbon.Compat.Lib;
 using FieldAttributes = AsmResolver.PE.DotNet.Metadata.Tables.Rows.FieldAttributes;
 using MethodAttributes = AsmResolver.PE.DotNet.Metadata.Tables.Rows.MethodAttributes;
 
@@ -35,7 +34,7 @@ public class OxideEntrypoint : BaseOxidePatch
 
         int postHookIndex = 0;
 
-        CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.InitialHooksInstalled, serverInit, new CilInstruction(CilOpCodes.Ldarg_0));
+        CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.HookValidatorRefreshed, serverInit, new CilInstruction(CilOpCodes.Ldarg_0));
 
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
 

@@ -42,6 +42,6 @@ public class OxideConverter : BaseConverter
         new ASMDebugPatch()
     #endif
     }.ToImmutableList();
-    public override string Name => "oxide";
+    public override string Name => "Oxide";
     //public override bool PluginReference => true;
 }

@@ -92,14 +92,18 @@ public class OxideTypeRef : BaseOxidePatch
 
     public static void ProcessTypeRef(TypeReference tw, ReferenceImporter importer)
     {
-        if (tw == null) return;
+	    if (tw == null)
+	    {
+		    return;
+	    }
+
         if (tw.Scope is TypeReference parent)
         {
             if (parent.FullName is "Oxide.Plugins.Timers" or "Oxide.Plugins.Timer" && tw.Name == "TimerInstance")
             {
                 tw.Name = "Timer";
                 tw.Namespace = "Oxide.Plugins";
-                tw.Scope = CompatManager.Manager.Common.ImportWith(importer);
+                tw.Scope = CompatManager.Common.ImportWith(importer);
                 return;
             }
         }
@@ -114,16 +118,16 @@ public class OxideTypeRef : BaseOxidePatch
 
             if (tw.Namespace.StartsWith("Newtonsoft.Json"))
             {
-                tw.Scope = CompatManager.Manager.Newtonsoft.ImportWith(importer);
+                tw.Scope = CompatManager.Newtonsoft.ImportWith(importer);
                 return;
             }
 
             if (tw.Namespace.StartsWith("ProtoBuf"))
             {
                 if (tw.Namespace == "ProtoBuf" && tw.Name == "Serializer")
-                    tw.Scope = CompatManager.Manager.protobuf.ImportWith(importer);
+                    tw.Scope = CompatManager.protobuf.ImportWith(importer);
                 else
-                    tw.Scope = CompatManager.Manager.protobufCore.ImportWith(importer);
+                    tw.Scope = CompatManager.protobufCore.ImportWith(importer);
                 return;
             }
 
@@ -134,13 +138,13 @@ public class OxideTypeRef : BaseOxidePatch
 
             if (tw.Namespace == "Oxide.Plugins" && tw.Name.EndsWith("Attribute"))
             {
-                tw.Namespace = "";
+                tw.Namespace = string.Empty;
                 goto sdk;
             }
 
             if (tw.FullName == "Oxide.Plugins.Hash`2")
             {
-                tw.Namespace = "";
+                tw.Namespace = string.Empty;
                 goto common;
             }
 
@@ -153,7 +157,7 @@ public class OxideTypeRef : BaseOxidePatch
 
             if (tw.FullName == "Oxide.Core.Plugins.HookMethodAttribute")
             {
-                tw.Namespace = "";
+                tw.Namespace = string.Empty;
                 goto sdk;
             }
 
@@ -166,14 +170,15 @@ public class OxideTypeRef : BaseOxidePatch
 
             if (tw.FullName == "Oxide.Core.Plugins.PluginManager")
             {
-                tw.Namespace = "";
+                tw.Namespace = string.Empty;
             }
 
             common:
-            tw.Scope = CompatManager.Manager.Common.ImportWith(importer);
+            tw.Scope = CompatManager.Common.ImportWith(importer);
             return;
+
             sdk:
-            tw.Scope = CompatManager.Manager.SDK.ImportWith(importer);
+            tw.Scope = CompatManager.SDK.ImportWith(importer);
         }
     }
 }
