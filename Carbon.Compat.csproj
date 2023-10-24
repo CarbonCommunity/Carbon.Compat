@@ -9,13 +9,9 @@
 	<Import Project="$(SolutionDir)\.msbuild\ReferencesRust.props" />
 
 	<ItemGroup>
+		<PackageReference Include="AsmResolver.DotNet" Version="5.4.0" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<ProjectReference Include="$(SolutionDir)\Carbon\Carbon.csproj" Private="false" />
 		<ProjectReference Include="$(SolutionDir)\Carbon.Components\Carbon.Common\Carbon.Common.csproj" Private="false" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="src\" />
 	</ItemGroup>
 
 	<ItemGroup>
