@@ -41,10 +41,11 @@ public static partial class OxideCompat
             {
                 Name = $"{name} - {author} (Oxide Extension)"
             };
+
             ModLoader.LoadedPackages.Add(package);
             modPackages[asm] = package;
         }
-        foreach (Type type in loader.CorePlugins)
+        foreach (var type in loader.CorePlugins)
         {
 	        if (type.IsAbstract)
 	        {

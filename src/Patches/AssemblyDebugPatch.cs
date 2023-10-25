@@ -3,9 +3,17 @@ using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class AssemblyDebugPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
         foreach (var type in assembly.GetAllTypes())
         {
@@ -20,9 +28,9 @@ public class AssemblyDebugPatch : IAssemblyPatch
 
                 for (int i = 0; i < body.Instructions.Count; i++)
                 {
-                    var CIL = body.Instructions[i];
+                    var cil = body.Instructions[i];
 
-                    if (CIL.OpCode == CilOpCodes.Call && CIL.Operand is MemberReference mref && mref.DeclaringType.DefinitionAssembly().IsCorLib &&
+                    if (cil.OpCode == CilOpCodes.Call && cil.Operand is MemberReference mref && mref.DeclaringType.DefinitionAssembly().IsCorLib &&
                         mref.Signature is MethodSignature msig && (( mref.DeclaringType.Name == "Debugger" && ( mref.Name == "get_IsAttached" || mref.Name == "IsLogging" )) ||
                                                                    ( mref.DeclaringType.Name == "Environment" && mref.Name == "FailFast" ) ) )
                     {
@@ -34,8 +42,8 @@ public class AssemblyDebugPatch : IAssemblyPatch
 
                         if (msig.ReturnType.ElementType == ElementType.Boolean)
                         {
-                            CIL.OpCode = CilOpCodes.Ldc_I4_0;
-                            CIL.Operand = null;
+                            cil.OpCode = CilOpCodes.Ldc_I4_0;
+                            cil.Operand = null;
                             continue;
                         }
 

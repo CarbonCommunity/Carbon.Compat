@@ -12,5 +12,5 @@ namespace Carbon.Compat.Patches;
 
 public interface IAssemblyPatch
 {
-    public abstract void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.GenInfo genIndo);
+    public abstract void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context);
 }

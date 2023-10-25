@@ -25,7 +25,7 @@ public abstract class BaseConverter
     public byte[] Convert(ModuleDefinition asm)
     {
         var importer = new ReferenceImporter(asm);
-        var info = (GenInfo)default;
+        var info = (Context)default;
 
         foreach (IAssemblyPatch patch in Patches)
         {
@@ -46,8 +46,8 @@ public abstract class BaseConverter
         }
     }
 
-    public struct GenInfo
+    public struct Context
     {
-	    public string author;
+	    public string Author;
     }
 }

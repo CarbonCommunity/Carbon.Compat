@@ -42,7 +42,7 @@ public class OxideConverter : BaseConverter
         new OxideEntrypoint(),
 
         // plugins
-        new OxidePluginAttr(),
+        new OxidePluginAttribute(),
 
         //common
         new ReflectionFlagsPatch(),

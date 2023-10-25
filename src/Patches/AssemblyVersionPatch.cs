@@ -1,23 +1,30 @@
-using System.Reflection;
 using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class AssemblyVersionPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
         var loaded = AppDomain.CurrentDomain.GetAssemblies();
 
-        foreach (var asmRef in assembly.AssemblyReferences)
+        foreach (var assemblyReference in assembly.AssemblyReferences)
         {
             foreach (var lasm in loaded)
             {
                 var name = lasm.GetName();
 
-                if (name.Name == asmRef.Name)
+                if (name.Name == assemblyReference.Name)
                 {
-                    asmRef.Version = name.Version;
+                    assemblyReference.Version = name.Version;
                 }
             }
         }

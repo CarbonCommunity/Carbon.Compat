@@ -17,28 +17,29 @@ namespace Carbon.Compat.Patches.Harmony;
 
 public class HarmonyEntrypoint : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
-        Guid guid = Guid.NewGuid();
-        List<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "Carbon.Compat.Lib.HarmonyCompat+IHarmonyModHooks")).ToList();
+        var guid = Guid.NewGuid();
+        var entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "Carbon.Compat.Lib.HarmonyCompat+IHarmonyModHooks"));
+
         CodeGenHelpers.GenerateEntrypoint(asm, importer, HarmonyStr, guid, out MethodDefinition load, out MethodDefinition unload, out TypeDefinition entryDef);
+
         load.CilMethodBody = new CilMethodBody(load);
         unload.CilMethodBody = new CilMethodBody(unload);
         unload.CilMethodBody.Instructions.Add(CilOpCodes.Ret);
 
-        MethodDefinition postHookLoad = new MethodDefinition("postHookLoad",
-            MethodAttributes.CompilerControlled, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void, importer.ImportTypeSignature(typeof(EventArgs))));
+        var postHookLoad = new MethodDefinition("postHookLoad", MethodAttributes.CompilerControlled, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void, importer.ImportTypeSignature(typeof(EventArgs))));
         postHookLoad.CilMethodBody = new CilMethodBody(postHookLoad);
 
-        FieldDefinition loadedField = new FieldDefinition("loaded", FieldAttributes.PrivateScope, new FieldSignature(asm.CorLibTypeFactory.Boolean));
-
+        var loadedField = new FieldDefinition("loaded", FieldAttributes.PrivateScope, new FieldSignature(asm.CorLibTypeFactory.Boolean));
         int postHookIndex = 0;
 
         CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.HookValidatorRefreshed, postHookLoad, new CilInstruction(CilOpCodes.Ldarg_0));
 
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
-        CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);
-        postHookLoad.CilMethodBody.Instructions.AddRange(new CilInstruction[]
+
+        var postHookRet = new CilInstruction(CilOpCodes.Ret);
+        postHookLoad.CilMethodBody.Instructions.AddRange(new[]
         {
             // load check
             new CilInstruction(CilOpCodes.Ldarg_0),
@@ -54,14 +55,13 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
             new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
         });
 
-        if (entryPoints.Count > 0)
+        if (entryPoints.Any())
         {
-            List<KeyValuePair<TypeDefinition, List<MethodDefinition>>> input =
-                new List<KeyValuePair<TypeDefinition, List<MethodDefinition>>>();
-            foreach (TypeDefinition entry in entryPoints)
-            {
-                input.Add(new KeyValuePair<TypeDefinition, List<MethodDefinition>>(entry, new List<MethodDefinition>{entry.Methods.First(x=>x.Name == "OnLoaded")}));
-            }
+            var input = entryPoints.Select(entry => new KeyValuePair<TypeDefinition, List<MethodDefinition>>(entry, new List<MethodDefinition>
+	            {
+		            entry.Methods.First(x => x.Name == "OnLoaded")
+	            }))
+	            .ToList();
 
             int multiCallIndex = postHookLoad.CilMethodBody.Instructions.Count;
             CodeGenHelpers.DoMultiMethodCall(postHookLoad.CilMethodBody, ref multiCallIndex, null, input);

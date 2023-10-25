@@ -3,6 +3,14 @@ using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class ReflectionFlagsPatch : IAssemblyPatch
 {
     public static List<string> ReflectionTypeMethods = new List<string>()
@@ -13,11 +21,11 @@ public class ReflectionFlagsPatch : IAssemblyPatch
         "GetMember"
     };
 
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.GenInfo context)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var td in assembly.GetAllTypes())
+        foreach (var type in assembly.GetAllTypes())
         {
-            foreach (var method in td.Methods)
+            foreach (var method in type.Methods)
             {
 	            if (method.MethodBody is not CilMethodBody body)
 	            {
@@ -26,10 +34,10 @@ public class ReflectionFlagsPatch : IAssemblyPatch
 
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
-                    var CIL = body.Instructions[index];
+                    var cil = body.Instructions[index];
 
-                    if (CIL.OpCode == CilOpCodes.Callvirt &&
-                        CIL.Operand is MemberReference mref &&
+                    if (cil.OpCode == CilOpCodes.Callvirt &&
+                        cil.Operand is MemberReference mref &&
                         mref.Signature is MethodSignature msig &&
                         mref.DeclaringType is TypeReference tref &&
                         tref.Scope is AssemblyReference aref &&
@@ -55,7 +63,7 @@ public class ReflectionFlagsPatch : IAssemblyPatch
 
                             goto exit;
                         }
-                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{CIL.Offset:X}:{index} in {assembly.Name}");
+                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{cil.Offset:X}:{index} in {assembly.Name}");
                     }
 
                     exit: ;

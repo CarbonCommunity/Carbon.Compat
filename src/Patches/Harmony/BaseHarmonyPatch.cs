@@ -16,5 +16,5 @@ public abstract class BaseHarmonyPatch : IAssemblyPatch
     public const string Harmony1NS = HarmonyStr;
     public const string Harmony2NS = "HarmonyLib";
     public const string HarmonyStr = "Harmony";
-    public abstract void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info);
+    public abstract void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context);
 }

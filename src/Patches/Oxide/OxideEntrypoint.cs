@@ -6,9 +6,17 @@ using MethodAttributes = AsmResolver.PE.DotNet.Metadata.Tables.Rows.MethodAttrib
 
 namespace Carbon.Compat.Patches.Oxide;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class OxideEntrypoint : BaseOxidePatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
         var guid = Guid.NewGuid();
         var entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
@@ -18,7 +26,7 @@ public class OxideEntrypoint : BaseOxidePatch
             return;
         }
 
-        info.author ??= entryPoints.FirstOrDefault().Properties.FirstOrDefault(x => x.Name == "Author" && x.GetMethod is { IsVirtual: true })?.GetMethod?.CilMethodBody?.Instructions.FirstOrDefault(x => x.OpCode == CilOpCodes.Ldstr)?.Operand as string;
+        context.Author ??= entryPoints.FirstOrDefault().Properties.FirstOrDefault(x => x.Name == "Author" && x.GetMethod is { IsVirtual: true })?.GetMethod?.CilMethodBody?.Instructions.FirstOrDefault(x => x.OpCode == CilOpCodes.Ldstr)?.Operand as string;
 
         CodeGenHelpers.GenerateEntrypoint(asm, importer, OxideStr, guid, out MethodDefinition load, out MethodDefinition unload, out TypeDefinition entryPoint);
 
