@@ -51,9 +51,9 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	        }
         }
 
-        // string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
-	    // Directory.CreateDirectory(dir);
-	    // OsEx.File.Create(Path.Combine(dir, asmName + ".dll"), op);
+        string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
+	    Directory.CreateDirectory(dir);
+	    OsEx.File.Create(Path.Combine(dir, md.Name + ".dll"), buffer);
 
 	    return true;
     }
