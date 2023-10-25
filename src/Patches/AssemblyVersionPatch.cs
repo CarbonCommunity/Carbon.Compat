@@ -3,19 +3,20 @@ using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
 
-public class AssemblyVersionPatch : IASMPatch
+public class AssemblyVersionPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.GenInfo info)
     {
-        List<Assembly> loaded = AppDomain.CurrentDomain.GetAssemblies().ToList();
-        foreach (AssemblyReference asmRef in asm.AssemblyReferences)
+        var loaded = AppDomain.CurrentDomain.GetAssemblies();
+
+        foreach (var asmRef in assembly.AssemblyReferences)
         {
-            foreach (Assembly lasm in loaded)
+            foreach (var lasm in loaded)
             {
-                AssemblyName name = lasm.GetName();
+                var name = lasm.GetName();
+
                 if (name.Name == asmRef.Name)
                 {
-                    //Logger.Info($"Setting version {asmRef.Name} to {asmRef.Version} > {name.Version}");
                     asmRef.Version = name.Version;
                 }
             }

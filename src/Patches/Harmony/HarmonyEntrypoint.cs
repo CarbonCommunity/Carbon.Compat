@@ -7,6 +7,14 @@ using MethodAttributes = AsmResolver.PE.DotNet.Metadata.Tables.Rows.MethodAttrib
 
 namespace Carbon.Compat.Patches.Harmony;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class HarmonyEntrypoint : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
@@ -61,7 +69,5 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
         postHookLoad.CilMethodBody.Instructions.Add(postHookRet);
         entryDef.Methods.Add(postHookLoad);
         entryDef.Fields.Add(loadedField);
-
-
     }
 }

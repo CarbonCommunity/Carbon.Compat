@@ -2,7 +2,15 @@ using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches.Harmony;
 
-public abstract class BaseHarmonyPatch : IASMPatch
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
+public abstract class BaseHarmonyPatch : IAssemblyPatch
 {
     public const string HarmonyASM = "0Harmony";
     public const string Harmony1NS = HarmonyStr;

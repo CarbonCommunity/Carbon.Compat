@@ -6,12 +6,20 @@ using JetBrains.Annotations;
 
 namespace Carbon.Compat.Converters;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 [UsedImplicitly]
 public class HarmonyConverter : BaseConverter
 {
-    public override ImmutableList<IASMPatch> patches => _patches;
+    public override ImmutableList<IAssemblyPatch> Patches => _patches;
 
-    private readonly ImmutableList<IASMPatch> _patches = new List<IASMPatch>()
+    private readonly ImmutableList<IAssemblyPatch> _patches = new List<IAssemblyPatch>()
     {
 	    // type ref
 	    new HarmonyTypeRef(),
@@ -33,7 +41,7 @@ public class HarmonyConverter : BaseConverter
 
 #if DEBUG
 	    //debug
-	    new ASMDebugPatch()
+	    new AssemblyDebugPatch()
 #endif
     }.ToImmutableList();
 

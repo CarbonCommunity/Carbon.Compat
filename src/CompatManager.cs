@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using API.Abstracts;
 using API.Assembly;
@@ -7,7 +6,6 @@ using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
 using Carbon.Components;
 using Carbon.Extensions;
-using Network;
 using Defines = Carbon.Core.Defines;
 
 [assembly: InternalsVisibleTo("Carbon.Bootstrap")]

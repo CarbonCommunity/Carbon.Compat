@@ -1,21 +1,22 @@
 using System.Reflection;
-using API.Events;
 using Carbon.Compat.Patches.Harmony;
 using HarmonyLib;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace Carbon.Compat.Lib;
-#pragma warning disable
+
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public static class HarmonyCompat
 {
-	internal const string log = "[CHA] ";
-	internal const string patch_str = log + "Patching method {0}::{1}";
-	internal const string complete = log + "Patch complete\n";
-
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	#pragma warning disable
 	internal static class HarmonyLoader
 	{
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
@@ -31,18 +32,16 @@ public static class HarmonyCompat
 
 			internal Type[] AllTypes { get; set; }
 
-			internal List<IHarmonyModHooks> Hooks { get; } = new List<IHarmonyModHooks>();
+			internal List<IHarmonyModHooks> Hooks { get; } = new();
 		}
 
-		internal static List<HarmonyLoader.HarmonyMod> loadedMods = new List<HarmonyLoader.HarmonyMod>();
+		internal static List<HarmonyMod> loadedMods = new();
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	#pragma warning disable
 	internal struct HarmonyModInfo
 	{
 		internal string Name;
-
 		internal string Version;
 	}
 
@@ -58,73 +57,70 @@ public static class HarmonyCompat
 	internal interface IHarmonyModHooks
 	{
 		void OnLoaded(OnHarmonyModLoadedArgs args);
-
 		void OnUnloaded(OnHarmonyModUnloadedArgs args);
 	}
 
-	internal static HashSet<Type> _type_cache = new();
+	internal static HashSet<Type> typeCache = new();
 
 	public static void PatchProcessorCompat(Harmony instance, Type type, HarmonyMethod attributes)
 	{
-		if (_type_cache.Contains(type)) return;
-		_type_cache.Add(type);
-	#if DEBUG
-		Debug.Log(log + $":START: Patching {type.FullName} using {instance.Id}\n\n");
-	#endif
-		//PatchProcessorCompat(null, null, null);
-		MethodInfo[] methods = type.GetMethods();
-		MethodInfo postfix =
-			methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPostfix), false).Length > 0);
-		MethodInfo prefix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPrefix), false).Length > 0);
-		MethodInfo transpiler =
-			methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyTranspiler), false).Length > 0);
-		MethodBase patchTargetMethod = methods.FirstOrDefault(x =>
-			x.GetCustomAttributes(typeof(HarmonyTargetMethods), false).Length > 0 ||
-			x.GetCustomAttributes(typeof(HarmonyTargetMethod), false).Length > 0);
-		if (patchTargetMethod == null)
+		if (typeCache.Contains(type))
 		{
-			throw new NullReferenceException($"failed to find target method in {type.FullName}");
+			return;
 		}
 
-		List<MethodBase> methodsToPatch = null;
+		typeCache.Add(type);
+
+		Logger.Debug("HarmonyCompat", $":START: Patching {type.FullName} using {instance.Id}\n\n");
+
+		var methods = type.GetMethods();
+		var postfix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPostfix), false).Length > 0);
+		var prefix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPrefix), false).Length > 0);
+		var transpiler = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyTranspiler), false).Length > 0);
+		var patchTargetMethod = methods.FirstOrDefault(x =>
+			x.GetCustomAttributes(typeof(HarmonyTargetMethods), false).Length > 0 ||
+			x.GetCustomAttributes(typeof(HarmonyTargetMethod), false).Length > 0);
+
+		if (patchTargetMethod == null)
+		{
+			throw new NullReferenceException($"Failed to find target method in {type.FullName}");
+		}
+
+		IEnumerable<MethodBase> methodsToPatch = null;
 		MethodBase single = null;
-		if (((MethodInfo)patchTargetMethod).ReturnType == typeof(IEnumerable<MethodBase>))
+
+		if (patchTargetMethod.ReturnType == typeof(IEnumerable<MethodBase>))
 		{
 			methodsToPatch = ((IEnumerable<MethodBase>)patchTargetMethod.Invoke(null,
-				patchTargetMethod.GetParameters().Length > 0 ? new object[] { null } : Array.Empty<object>())).ToList();
+				patchTargetMethod.GetParameters().Length > 0 ? new object[1] : Array.Empty<object>()));
 		}
-		else if (((MethodInfo)patchTargetMethod).ReturnType == typeof(MethodBase))
+		else if (patchTargetMethod.ReturnType == typeof(MethodBase))
 		{
 			single = (MethodBase)patchTargetMethod.Invoke(null,
-				patchTargetMethod.GetParameters().Length > 0 ? new object[] { null } : Array.Empty<object>());
+				patchTargetMethod.GetParameters().Length > 0 ? new object[]
+				{
+					null
+				} : Array.Empty<object>());
 		}
 		else
 		{
 			return;
 		}
 
-		//if (methodsToPatch == null && single == null)
-		{
-			//return;
-		}
-
 		void ProcessType(MethodBase original, bool pregen)
 		{
 			if (pregen)
 			{
-				//Logger.Info($"PreGen for {original}");
 				HarmonyPatchProcessor.RegisterPatch(original.DeclaringType.Assembly.GetName().Name, original.Name,
 					original.DeclaringType.FullName, $"{type.Assembly.GetName().Name} - {type.FullName}");
+
 				return;
 			}
 
-			//Logger.Info($"Patching {original}");
 			try
 			{
-			#if DEBUG
-				Debug.Log(string.Format(patch_str,
-					original.DeclaringType == null ? "NULL" : original.DeclaringType.FullName, original.Name));
-			#endif
+				Logger.Debug("HarmonyCompat", $"Patching '{(original.DeclaringType == null ? "NULL" : original.DeclaringType.FullName)}' of '{original.Name}'");
+
 				if (!original.IsDeclaredMember())
 				{
 					original = original.GetDeclaredMember();
@@ -134,37 +130,27 @@ public static class HarmonyCompat
 
 				if (postfix != null)
 				{
-				#if DEBUG
-					Debug.Log(log + $"> postfix");
-				#endif
+					Logger.Debug("HarmonyCompat","> postfix", 2);
 					patcher.AddPostfix(postfix);
 				}
 
 				if (prefix != null)
 				{
-				#if DEBUG
-					Debug.Log(log + $"> prefix");
-				#endif
+					Logger.Debug("HarmonyCompat","> prefix", 2);
 					patcher.AddPrefix(prefix);
 				}
 
 				if (transpiler != null)
 				{
-				#if DEBUG
-					Debug.Log(log + $"> transpiler");
-				#endif
+					Logger.Debug("HarmonyCompat","> transpiler", 2);
 					patcher.AddTranspiler(transpiler);
 				}
 
 				patcher.Patch();
-
-			#if DEBUG
-				Debug.Log(complete);
-			#endif
 			}
-			catch (Exception e)
+			catch (Exception ex)
 			{
-				Debug.LogError($"Failed to patch {original.Name}\n{e}");
+				Logger.Error($"[HarmonyCompat] Failed to patch '{original.Name}'", ex);
 			}
 		}
 
@@ -174,7 +160,10 @@ public static class HarmonyCompat
 
 		if (methodsToPatch != null)
 		{
-			if (methodsToPatch.Count > 1 && !pregen) Debug.Log(log + $"Bulk patching {methodsToPatch.Count} methods");
+			if (methodsToPatch.Any() && !pregen)
+			{
+				Logger.Debug("HarmonyCompat", $"Bulk patching {methodsToPatch.Count():n0} methods");
+			}
 			foreach (MethodBase original in methodsToPatch)
 			{
 				ProcessType(original, pregen);
@@ -191,10 +180,7 @@ public static class HarmonyCompat
 			HookProcessor.HookReload();
 			goto loop;
 		}
-	#if DEBUG
-		Debug.Log(log + $":END: Patching {type.FullName} using {instance.Id}\n\n");
-	#endif
-		//MethodBase target = patchTargetMethod.Invoke(null, new []{instance});
-		//return patcher;
+
+		Logger.Debug("HarmonyCompat", $"Patch '{type.FullName}' complete with domain '{instance.Id}'");
 	}
 }

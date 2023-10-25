@@ -5,12 +5,23 @@ using Carbon.Compat.Patches.Oxide;
 using JetBrains.Annotations;
 
 namespace Carbon.Compat.Converters;
+
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 [UsedImplicitly]
 public class OxideConverter : BaseConverter
 {
-	public override ImmutableList<IASMPatch> patches => _patches;
+	public override ImmutableList<IAssemblyPatch> Patches => _patches;
+	
+	public override string Name => "Oxide";
 
-	private readonly ImmutableList<IASMPatch> _patches = new List<IASMPatch>()
+	private readonly ImmutableList<IAssemblyPatch> _patches = new List<IAssemblyPatch>()
 	{
         // type ref
         new OxideTypeRef(),
@@ -37,11 +48,9 @@ public class OxideConverter : BaseConverter
         new ReflectionFlagsPatch(),
         new AssemblyVersionPatch(),
 
-        //debug
     #if DEBUG
-        new ASMDebugPatch()
+		//debug
+        new AssemblyDebugPatch()
     #endif
     }.ToImmutableList();
-    public override string Name => "Oxide";
-    //public override bool PluginReference => true;
 }

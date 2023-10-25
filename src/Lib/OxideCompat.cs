@@ -9,6 +9,14 @@ using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Compat.Lib;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public static partial class OxideCompat
 {
