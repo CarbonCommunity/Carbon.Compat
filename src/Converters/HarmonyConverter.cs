@@ -37,5 +37,5 @@ public class HarmonyConverter : BaseConverter
 #endif
     }.ToImmutableList();
 
-    public override string Name => "Harmony";
+    public override string Name => "HarmonyMod";
 }

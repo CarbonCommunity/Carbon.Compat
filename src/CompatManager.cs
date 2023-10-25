@@ -37,7 +37,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer)
     {
-        using (TimeMeasure.New($"Converted {converter.Name} assembly {md.Name}", 1))
+        using (TimeMeasure.New($"{converter.Name} assembly conversion for '{md.Name}'", 1))
         {
 	        try
 	        {
