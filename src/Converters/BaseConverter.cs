@@ -24,22 +24,22 @@ public abstract class BaseConverter
 
     public byte[] Convert(ModuleDefinition asm)
     {
-        var importer = new ReferenceImporter(asm);
-        var info = (Context)default;
+        ReferenceImporter importer = new ReferenceImporter(asm);
+        Context info = default;
 
         foreach (IAssemblyPatch patch in Patches)
         {
             patch.Apply(asm, importer, info);
         }
 
-        var result = _imageBuilder.CreateImage(asm);
+        PEImageBuildResult result = _imageBuilder.CreateImage(asm);
 
         if (result.HasFailed)
         {
 	        throw new MetadataBuilderException("it failed :(");
         }
 
-        using (var ms = new MemoryStream())
+        using (MemoryStream ms = new MemoryStream())
         {
             _fileBuilder.CreateFile(result.ConstructedImage).Write(ms);
             return ms.ToArray();

@@ -28,6 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+public static class OxideEvents {
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event
@@ -620,6 +622,7 @@ public class Event
 		}
 	}
 }
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event<T>
@@ -682,6 +685,7 @@ public class Event<T>
 		}
 	}
 }
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event<T1, T2>
@@ -786,6 +790,7 @@ public class Event<T1, T2>
 		}
 	}
 }
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event<T1, T2, T3>
@@ -911,6 +916,7 @@ public class Event<T1, T2, T3>
 		}
 	}
 }
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event<T1, T2, T3, T4>
@@ -1057,6 +1063,7 @@ public class Event<T1, T2, T3, T4>
 		}
 	}
 }
+
 [Obsolete(OxideCompat.LEGACY_MSG)]
 [UsedImplicitly]
 public class Event<T1, T2, T3, T4, T5>
@@ -1224,4 +1231,5 @@ public class Event<T1, T2, T3, T4, T5>
 			}
 		}
 	}
+}
 }

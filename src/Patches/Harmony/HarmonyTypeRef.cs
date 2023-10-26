@@ -15,9 +15,9 @@ public class HarmonyTypeRef : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var type in assembly.GetImportedTypeReferences())
+        foreach (TypeReference type in assembly.GetImportedTypeReferences())
         {
-            var reference = type.Scope as AssemblyReference;
+            AssemblyReference reference = type.Scope as AssemblyReference;
 
             if (reference != null && reference.Name == HarmonyASM)
             {

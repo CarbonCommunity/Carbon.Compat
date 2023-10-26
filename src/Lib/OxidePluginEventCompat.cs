@@ -30,7 +30,7 @@ public partial class OxideCompat
     }
     internal static void HandlePluginIO(bool loaded, CarbonEventArgs args)
     {
-        var plugin = (RustPlugin)args.Payload;
+        RustPlugin plugin = (RustPlugin)args.Payload;
         PluginManagerEvent ev;
 
         if (loaded)
@@ -46,7 +46,7 @@ public partial class OxideCompat
         ev?.Invoke(plugin, plugin.Manager);
     }
 
-    public class PluginManagerEvent : Legacy.EventCompat.Event<Plugin, PluginManager>
+    public class PluginManagerEvent : Legacy.EventCompat.OxideEvents.Event<Plugin, PluginManager>
     {
 
     }

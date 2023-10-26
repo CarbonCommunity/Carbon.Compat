@@ -18,7 +18,7 @@ namespace Carbon.Compat.Converters;
 public class OxideConverter : BaseConverter
 {
 	public override ImmutableList<IAssemblyPatch> Patches => _patches;
-	
+
 	public override string Name => "Oxide";
 
 	private readonly ImmutableList<IAssemblyPatch> _patches = new List<IAssemblyPatch>()
@@ -48,9 +48,7 @@ public class OxideConverter : BaseConverter
         new ReflectionFlagsPatch(),
         new AssemblyVersionPatch(),
 
-    #if DEBUG
 		//debug
         new AssemblyDebugPatch()
-    #endif
-    }.ToImmutableList();
+	}.ToImmutableList();
 }

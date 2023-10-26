@@ -41,7 +41,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
     private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer)
     {
-	    var stopwatch = Pool.Get<Stopwatch>();
+	    Stopwatch stopwatch = Pool.Get<Stopwatch>();
 	    stopwatch.Start();
 
 	    try
@@ -61,7 +61,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    Pool.Free(ref stopwatch);
 
 #if DEBUG
-	    var dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
+	    string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
 	    Directory.CreateDirectory(dir);
 	    OsEx.File.Create(Path.Combine(dir, md.Name + ".dll"), buffer);
 #endif
@@ -70,7 +70,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
     ConversionResult ICompatManager.AttemptOxideConvert(ref byte[] data)
     {
-	    var asm = ModuleDefinition.FromBytes(data, readerArgs);
+	    ModuleDefinition asm = ModuleDefinition.FromBytes(data, readerArgs);
 
 	    if (!asm.AssemblyReferences.Any(Helpers.IsOxideASM))
 	    {

@@ -1,3 +1,4 @@
+using System.Reflection;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
@@ -17,22 +18,22 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var type in asm.GetAllTypes())
+        foreach (TypeDefinition type in asm.GetAllTypes())
         {
-            var invalid = false;
+            bool invalid = false;
 
-            var patches = Pool.GetList<CustomAttribute>();
+            List<CustomAttribute> patches = Pool.GetList<CustomAttribute>();
 
-            foreach (var attr in type.CustomAttributes)
+            foreach (CustomAttribute attr in type.CustomAttributes)
             {
-                var declaringType = attr.Constructor?.DeclaringType;
+                ITypeDefOrRef declaringType = attr.Constructor?.DeclaringType;
 
                 if (declaringType == null)
                 {
 	                continue;
                 }
 
-                var sig = attr.Signature;
+                CustomAttributeSignature sig = attr.Signature;
 
                 if (sig == null)
                 {
@@ -78,7 +79,18 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 
     public static void RegisterPatch(string assemblyName, string methodName, string typeName, string reason)
     {
-        CurrentPatches.Add(new PatchInfoEntry(assemblyName, methodName, typeName, reason));
+	    CurrentPatches.Add(new PatchInfoEntry(assemblyName, methodName, typeName, reason));
+    #if DEBUG
+	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason}");
+    #endif
+    }
+
+    public static void RegisterPatch(MethodBase method, string reason)
+    {
+	    CurrentPatches.Add(new PatchInfoEntry(method));
+    #if DEBUG
+	    Logger.Debug($"Found harmony patch {method.DeclaringType.Assembly.GetName().Name} - {method.DeclaringType.Name}::{method.Name} from {reason}");
+    #endif
     }
 
     public class PatchInfoEntry
@@ -87,6 +99,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
         public string TypeName;
         public string MethodName;
         public string Reason;
+        public MethodBase runtime_method;
 
         public PatchInfoEntry(string assemblyName, string methodName, string typeName, string reason)
         {
@@ -94,6 +107,11 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
             this.MethodName = methodName;
             this.TypeName = typeName;
             this.Reason = reason;
+        }
+
+        public PatchInfoEntry(MethodBase method)
+        {
+	        this.runtime_method = method;
         }
     }
 
@@ -120,7 +138,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 
         public static bool IsPatchAllowed(TypeDefinition type)
         {
-            var target = type.Methods.FirstOrDefault(x => x.CustomAttributes.Any(y =>
+            MethodDefinition target = type.Methods.FirstOrDefault(x => x.CustomAttributes.Any(y =>
                 y.Constructor.DeclaringType.Name == "HarmonyTargetMethods" &&
                 y.Constructor.DeclaringType.Scope is SerializedAssemblyReference asmref &&
                 asmref.Name == HarmonyASM));
@@ -128,9 +146,9 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 
             for (int index = 0; index < body.Instructions.Count; index++)
             {
-                var cil = body.Instructions[index];
+                CilInstruction CIL = body.Instructions[index];
 
-                if (cil.OpCode == CilOpCodes.Ldstr && cil.Operand is string str)
+                if (CIL.OpCode == CilOpCodes.Ldstr && CIL.Operand is string str)
                 {
                     if (string_blacklist.Contains(str))
                     {

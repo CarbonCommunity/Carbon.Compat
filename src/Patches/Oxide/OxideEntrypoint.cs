@@ -18,8 +18,8 @@ public class OxideEntrypoint : BaseOxidePatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
-        var guid = Guid.NewGuid();
-        var entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
+        Guid guid = Guid.NewGuid();
+        IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
 
         if (!entryPoints.Any())
         {
@@ -36,18 +36,18 @@ public class OxideEntrypoint : BaseOxidePatch
         unload.CilMethodBody = new CilMethodBody(unload);
         unload.CilMethodBody.Instructions.Add(CilOpCodes.Ret);
 
-        var serverInit = new MethodDefinition("serverInit",
+        MethodDefinition serverInit = new MethodDefinition("serverInit",
             MethodAttributes.CompilerControlled, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void, importer.ImportTypeSignature(typeof(EventArgs))));
         serverInit.CilMethodBody = new CilMethodBody(serverInit);
 
-        var loadedField = new FieldDefinition("loaded", FieldAttributes.PrivateScope, new FieldSignature(asm.CorLibTypeFactory.Boolean));
-        var postHookIndex = 0;
+        FieldDefinition loadedField = new FieldDefinition("loaded", FieldAttributes.PrivateScope, new FieldSignature(asm.CorLibTypeFactory.Boolean));
+        int postHookIndex = 0;
 
         CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.HookValidatorRefreshed, serverInit, new CilInstruction(CilOpCodes.Ldarg_0));
 
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
 
-        var postHookRet = new CilInstruction(CilOpCodes.Ret);
+        CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);
         serverInit.CilMethodBody.Instructions.AddRange(new[]
         {
             // load check
@@ -59,10 +59,10 @@ public class OxideEntrypoint : BaseOxidePatch
             new CilInstruction(CilOpCodes.Stfld, loadedField)
         });
 
-        foreach (var entry in entryPoints)
+        foreach (TypeDefinition entry in entryPoints)
         {
-            var extLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "Load" && x.IsVirtual);
-            var extCtor = entry.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 1);
+            MethodDefinition extLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "Load" && x.IsVirtual);
+            MethodDefinition extCtor = entry.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 1);
 
             if (extLoadMethod == null)
             {

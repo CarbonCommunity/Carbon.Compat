@@ -39,10 +39,8 @@ public class HarmonyConverter : BaseConverter
 	    new ReflectionFlagsPatch(),
 	    new AssemblyVersionPatch(),
 
-#if DEBUG
 	    //debug
 	    new AssemblyDebugPatch()
-#endif
     }.ToImmutableList();
 
     public override string Name => "HarmonyMod";

@@ -23,9 +23,9 @@ public class ReflectionFlagsPatch : IAssemblyPatch
 
     public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var type in assembly.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            foreach (var method in type.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
 	            if (method.MethodBody is not CilMethodBody body)
 	            {
@@ -34,10 +34,10 @@ public class ReflectionFlagsPatch : IAssemblyPatch
 
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
-                    var cil = body.Instructions[index];
+                    CilInstruction CIL = body.Instructions[index];
 
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference mref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference mref &&
                         mref.Signature is MethodSignature msig &&
                         mref.DeclaringType is TypeReference tref &&
                         tref.Scope is AssemblyReference aref &&
@@ -49,21 +49,21 @@ public class ReflectionFlagsPatch : IAssemblyPatch
                     {
                         for (int li = index - 1; li >= Math.Max(index-5, 0); li--)
                         {
-                            var xil = body.Instructions[li];
+                            CilInstruction xil = body.Instructions[li];
 
                             if (!xil.IsLdcI4())
                             {
                                 continue;
                             }
 
-                            var flags = (BindingFlags)xil.GetLdcI4Constant() | BindingFlags.Public | BindingFlags.NonPublic;
+                            BindingFlags flags = (BindingFlags)xil.GetLdcI4Constant() | BindingFlags.Public | BindingFlags.NonPublic;
 
                             xil.Operand = (object)(int)flags;
                             xil.OpCode = CilOpCodes.Ldc_I4;
 
                             goto exit;
                         }
-                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{cil.Offset:X}:{index} in {assembly.Name}");
+                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{CIL.Offset:X}:{index} in {assembly.Name}");
                     }
 
                     exit: ;

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
@@ -14,13 +15,13 @@ public class AssemblyVersionPatch : IAssemblyPatch
 {
     public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        var loaded = AppDomain.CurrentDomain.GetAssemblies();
+        Assembly[] loaded = AppDomain.CurrentDomain.GetAssemblies();
 
-        foreach (var assemblyReference in assembly.AssemblyReferences)
+        foreach (AssemblyReference assemblyReference in assembly.AssemblyReferences)
         {
-            foreach (var lasm in loaded)
+            foreach (Assembly lasm in loaded)
             {
-                var name = lasm.GetName();
+                AssemblyName name = lasm.GetName();
 
                 if (name.Name == assemblyReference.Name)
                 {

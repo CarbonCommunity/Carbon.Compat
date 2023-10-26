@@ -1,5 +1,6 @@
 using Carbon.Base;
 using Carbon.Compat.Converters;
+using Carbon.Compat.Legacy.EventCompat;
 using Carbon.Compat.Lib;
 
 namespace Carbon.Compat.Patches.Oxide;
@@ -24,9 +25,9 @@ public class OxideTypeRef : BaseOxidePatch
 
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var memberReference in assembly.GetImportedMemberReferences())
+        foreach (MemberReference memberReference in assembly.GetImportedMemberReferences())
         {
-            var aref = memberReference.DeclaringType.DefinitionAssembly();
+            AssemblyReference aref = memberReference.DeclaringType.DefinitionAssembly();
 
             if (memberReference.Signature is MethodSignature methodSignature)
             {
@@ -35,13 +36,13 @@ public class OxideTypeRef : BaseOxidePatch
 		            continue;
 	            }
 
-	            var fullName = memberReference.FullName;
+	            string fullName = memberReference.FullName;
 
 	            if (PluginToBaseHookable.Contains(memberReference.FullName))
 	            {
 		            for (int index = 0; index < methodSignature.ParameterTypes.Count; index++)
 		            {
-			            var typeSig = methodSignature.ParameterTypes[index];
+			            TypeSignature typeSig = methodSignature.ParameterTypes[index];
 
 			            if (typeSig.FullName == "Oxide.Core.Plugins.Plugin" && Helpers.IsOxideASM(typeSig.DefinitionAssembly()))
 			            {
@@ -60,28 +61,28 @@ public class OxideTypeRef : BaseOxidePatch
             }
         }
 
-        foreach (var typeReference in assembly.GetImportedTypeReferences())
+        foreach (TypeReference typeReference in assembly.GetImportedTypeReferences())
         {
             ProcessTypeRef(typeReference, importer);
         }
 
         ProcessAttrList(assembly.CustomAttributes);
 
-        foreach (var type in assembly.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
             ProcessAttrList(type.CustomAttributes);
 
-            foreach (var field in type.Fields)
+            foreach (FieldDefinition field in type.Fields)
             {
                 ProcessAttrList(field.CustomAttributes);
             }
 
-            foreach (var method in type.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
                 ProcessAttrList(method.CustomAttributes);
             }
 
-            foreach (var property in type.Properties)
+            foreach (PropertyDefinition property in type.Properties)
             {
                 ProcessAttrList(property.CustomAttributes);
             }
@@ -91,11 +92,11 @@ public class OxideTypeRef : BaseOxidePatch
         {
             for (int x = 0; x < list.Count; x++)
             {
-                var attr = list[x];
+                CustomAttribute attr = list[x];
 
                 for (int y = 0; y < attr.Signature?.FixedArguments.Count; y++)
                 {
-                    var arg = attr.Signature.FixedArguments[y];
+                    CustomAttributeArgument arg = attr.Signature.FixedArguments[y];
                     if (arg.Element is TypeDefOrRefSignature sig)
                     {
                         ProcessTypeRef(sig.Type as TypeReference, importer);
@@ -127,10 +128,10 @@ public class OxideTypeRef : BaseOxidePatch
         {
 	        return;
         }
-        
+
         if (type.FullName == "Oxide.Core.Event" || type.FullName.StartsWith("Oxide.Core.Event`"))
         {
-	        type.Scope = (IResolutionScope)importer.ImportType(typeof(OxideCompat));
+	        type.Scope = (IResolutionScope)importer.ImportType(typeof(OxideEvents));
 	        return;
         }
 

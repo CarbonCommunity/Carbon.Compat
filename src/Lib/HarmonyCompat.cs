@@ -1,4 +1,7 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using Carbon.Compat.Patches.Harmony;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -60,6 +63,16 @@ public static class HarmonyCompat
 		void OnUnloaded(OnHarmonyModUnloadedArgs args);
 	}
 
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public static DynamicMethod InstancePatchCompat(Harmony instance, MethodBase original, HarmonyMethod prefix = null, HarmonyMethod postfix = null, HarmonyMethod transpiler = null)
+	{
+		MethodBase calling = new StackTrace().GetFrame(1).GetMethod();
+		HarmonyPatchProcessor.RegisterPatch(original, $"{calling.DeclaringType.Assembly.GetName().Name} - {calling}");
+		HookProcessor.HookReload();
+		instance.Patch(original, prefix, postfix, transpiler);
+		return null;
+	}
+
 	internal static HashSet<Type> typeCache = new();
 
 	public static void PatchProcessorCompat(Harmony instance, Type type, HarmonyMethod attributes)
@@ -73,11 +86,11 @@ public static class HarmonyCompat
 
 		Logger.Debug("HarmonyCompat", $":START: Patching {type.FullName} using {instance.Id}\n\n");
 
-		var methods = type.GetMethods();
-		var postfix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPostfix), false).Length > 0);
-		var prefix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPrefix), false).Length > 0);
-		var transpiler = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyTranspiler), false).Length > 0);
-		var patchTargetMethod = methods.FirstOrDefault(x =>
+		MethodInfo[] methods = type.GetMethods();
+		MethodInfo postfix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPostfix), false).Length > 0);
+		MethodInfo prefix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPrefix), false).Length > 0);
+		MethodInfo transpiler = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyTranspiler), false).Length > 0);
+		MethodInfo patchTargetMethod = methods.FirstOrDefault(x =>
 			x.GetCustomAttributes(typeof(HarmonyTargetMethods), false).Length > 0 ||
 			x.GetCustomAttributes(typeof(HarmonyTargetMethod), false).Length > 0);
 

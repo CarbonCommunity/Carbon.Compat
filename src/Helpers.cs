@@ -22,7 +22,7 @@ public static class Helpers
     public static Utf8String ToLower(this Utf8String str) => new Utf8String(str.Value.ToLower()); // ITypeDescriptor
     public static void AddDefaultCtor(this TypeDefinition type, ModuleDefinition asm, ReferenceImporter importer)
     {
-        var ctor = new MethodDefinition(".ctor",
+        MethodDefinition ctor = new MethodDefinition(".ctor",
             MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName |
             MethodAttributes.RuntimeSpecialName, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void));
         ctor.MethodBody = new CilMethodBody(ctor);

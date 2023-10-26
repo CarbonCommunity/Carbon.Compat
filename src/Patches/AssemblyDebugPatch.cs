@@ -15,11 +15,11 @@ public class AssemblyDebugPatch : IAssemblyPatch
 {
     public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var type in assembly.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            foreach (var method in type.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
-                var body = method.CilMethodBody;
+                CilMethodBody body = method.CilMethodBody;
 
                 if (body == null)
                 {
@@ -28,7 +28,7 @@ public class AssemblyDebugPatch : IAssemblyPatch
 
                 for (int i = 0; i < body.Instructions.Count; i++)
                 {
-                    var cil = body.Instructions[i];
+                    CilInstruction cil = body.Instructions[i];
 
                     if (cil.OpCode == CilOpCodes.Call && cil.Operand is MemberReference mref && mref.DeclaringType.DefinitionAssembly().IsCorLib &&
                         mref.Signature is MethodSignature msig && (( mref.DeclaringType.Name == "Debugger" && ( mref.Name == "get_IsAttached" || mref.Name == "IsLogging" )) ||
@@ -66,7 +66,7 @@ public class AssemblyDebugPatch : IAssemblyPatch
     #if DEBUG
         for (int index = 0; index < assembly.Assembly.CustomAttributes.Count; index++)
         {
-            var attr = assembly.Assembly.CustomAttributes[index];
+            CustomAttribute attr = assembly.Assembly.CustomAttributes[index];
 
             if (attr.Constructor.DeclaringType.FullName == "System.Diagnostics.DebuggableAttribute" && attr.Constructor.DeclaringType.DefinitionAssembly().IsCorLib)
             {
@@ -74,8 +74,8 @@ public class AssemblyDebugPatch : IAssemblyPatch
             }
         }
 
-        var enumRef = importer.ImportTypeSignature(typeof(DebuggableAttribute.DebuggingModes));
-        var debugAttr = new CustomAttribute(importer.ImportType(typeof(DebuggableAttribute))
+        TypeSignature enumRef = importer.ImportTypeSignature(typeof(DebuggableAttribute.DebuggingModes));
+        CustomAttribute debugAttr = new CustomAttribute(importer.ImportType(typeof(DebuggableAttribute))
                 .CreateMemberReference(".ctor",
                     MethodSignature.CreateInstance(assembly.CorLibTypeFactory.Void,
                         importer.ImportTypeSignature(typeof(DebuggableAttribute.DebuggingModes)))).ImportWith(importer),

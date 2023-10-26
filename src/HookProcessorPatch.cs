@@ -1,3 +1,4 @@
+using System.Reflection;
 using API.Events;
 using API.Hooks;
 using Carbon.Compat.Patches.Harmony;
@@ -18,7 +19,7 @@ internal static class HookProcessor
     {
         Logger.Debug("Processing dynamic hooks", 2);
 
-        foreach (var hook in Community.Runtime.HookManager.LoadedDynamicHooks)
+        foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
         {
 #if DEBUG
 	        Logger.Debug($"Found dyn hooky: {hook.HookFullName}", 2);
@@ -28,12 +29,12 @@ internal static class HookProcessor
 		        return;
 	        }
 
-            var cache = hook.TargetMethods[0];
-            var asmName = cache.DeclaringType.Assembly.GetName().Name;
-            var typeName = cache.DeclaringType.FullName;
-            var methodName = cache.Name;
+            MethodBase cache = hook.TargetMethods[0];
+            string asmName = cache.DeclaringType.Assembly.GetName().Name;
+            string typeName = cache.DeclaringType.FullName;
+            string methodName = cache.Name;
 
-            var patchInfo = HarmonyPatchProcessor.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
+            HarmonyPatchProcessor.PatchInfoEntry patchInfo = HarmonyPatchProcessor.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
 
             if (patchInfo == null)
             {

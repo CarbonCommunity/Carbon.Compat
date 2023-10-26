@@ -28,12 +28,12 @@ public static partial class OxideCompat
     {
         self.RegisterPluginLoader(loader);
 
-        var asmName = Assembly.GetCallingAssembly().GetName().Name;
+        string asmName = Assembly.GetCallingAssembly().GetName().Name;
         Logger.Debug($"Oxide plugin loader call using {loader.GetType().FullName} from assembly {asmName}", 2);
 
-        var asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
-        var name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
-        var author = oxideExt != null ? oxideExt.Author : "Carbon.Compat";
+        Assembly asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
+        string name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
+        string author = oxideExt != null ? oxideExt.Author : "Carbon.Compat";
 
         if (!modPackages.TryGetValue(asm, out ModLoader.ModPackage package))
         {
@@ -45,7 +45,7 @@ public static partial class OxideCompat
             ModLoader.LoadedPackages.Add(package);
             modPackages[asm] = package;
         }
-        foreach (var type in loader.CorePlugins)
+        foreach (Type type in loader.CorePlugins)
         {
 	        if (type.IsAbstract)
 	        {

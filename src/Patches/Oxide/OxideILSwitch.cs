@@ -41,14 +41,14 @@ public class OxideILSwitch : BaseOxidePatch
     }
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (var type in assembly.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            var classIsRustPlugin = type.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
-            var classOxideExtension = type.IsBaseType(x => x.FullName == "Oxide.Core.Extensions.Extension" && x.DefinitionAssembly().Name == "Carbon.Common");
+            bool classIsRustPlugin = type.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
+            bool classOxideExtension = type.IsBaseType(x => x.FullName == "Oxide.Core.Extensions.Extension" && x.DefinitionAssembly().Name == "Carbon.Common");
 
-            foreach (var method in type.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
-                var isRustPluginInstance = !method.IsStatic && classIsRustPlugin;
+                bool isRustPluginInstance = !method.IsStatic && classIsRustPlugin;
 
                 if (method.MethodBody is not CilMethodBody body)
                 {
@@ -57,25 +57,25 @@ public class OxideILSwitch : BaseOxidePatch
 
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
-                    var cil = body.Instructions[index];
+                    CilInstruction CIL = body.Instructions[index];
                     // IL Patches
 
                     // plugin loader
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference aref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference aref &&
                         aref.Name == "RegisterPluginLoader" &&
                         aref.Parent is TypeReference atw &&
                         atw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.OpCode = CilOpCodes.Call;
-                        cil.Operand = importer.ImportMethod(pluginLoaderMethod);
+                        CIL.OpCode = CilOpCodes.Call;
+                        CIL.Operand = importer.ImportMethod(pluginLoaderMethod);
                         body.Instructions.Insert(index++, new CilInstruction(!method.IsStatic && classOxideExtension ? CilOpCodes.Ldarg_0 : CilOpCodes.Ldnull));
                         continue;
                     }
 
                     // add console command
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference bref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference bref &&
                         bref.Name == "AddConsoleCommand" &&
                         bref.Parent is TypeReference btw &&
                         btw.FullName == "Oxide.Game.Rust.Libraries.Command" &&
@@ -86,14 +86,14 @@ public class OxideILSwitch : BaseOxidePatch
                         asig.ParameterTypes[2].FullName == "System.Func`2<ConsoleSystem+Arg, System.Boolean>" &&
                         btw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.OpCode = CilOpCodes.Call;
-                        cil.Operand = importer.ImportMethod(consoleCommand1);
+                        CIL.OpCode = CilOpCodes.Call;
+                        CIL.Operand = importer.ImportMethod(consoleCommand1);
                         continue;
                     }
 
                     // add chat command
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference cref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference cref &&
                         cref.Name == "AddChatCommand" &&
                         cref.Parent is TypeReference ctw &&
                         ctw.FullName == "Oxide.Game.Rust.Libraries.Command" &&
@@ -106,26 +106,26 @@ public class OxideILSwitch : BaseOxidePatch
                         switch (bsig.ParameterTypes[2].FullName)
                         {
                             case "System.Action`3<BasePlayer, System.String, System.String[]>":
-                                cil.Operand = importer.ImportMethod(chatCommand1);
+                                CIL.Operand = importer.ImportMethod(chatCommand1);
                                 goto cend;
                             default:
                                 continue;
                         }
                         cend:
-                        cil.OpCode = CilOpCodes.Call;
+                        CIL.OpCode = CilOpCodes.Call;
                         continue;
                     }
 
                     // remove RegisterLibrary calls
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference dref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference dref &&
                         dref.Name == "RegisterLibrary" &&
                         dref.Parent is TypeReference dtw &&
                         dtw.FullName == "Oxide.Core.Extensions.ExtensionManager" &&
                         dtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.OpCode = CilOpCodes.Pop;
-                        cil.Operand = null;
+                        CIL.OpCode = CilOpCodes.Pop;
+                        CIL.Operand = null;
                         body.Instructions.InsertRange(index, new CilInstruction[]
                         {
                             new CilInstruction(CilOpCodes.Pop),
@@ -137,21 +137,21 @@ public class OxideILSwitch : BaseOxidePatch
 
 
                     // extension paths
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference eref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference eref &&
                         eref.Name == "get_ExtensionDirectory" &&
                         eref.Parent is TypeReference etw &&
                         etw.FullName == "Oxide.Core.OxideMod" &&
                         etw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.OpCode = CilOpCodes.Call;
-                        cil.Operand = importer.ImportMethod(getExtensionDirectory);
+                        CIL.OpCode = CilOpCodes.Call;
+                        CIL.Operand = importer.ImportMethod(getExtensionDirectory);
                         continue;
                     }
 
                     // timer call fix
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference fref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference fref &&
                         fref.Signature is MethodSignature fsig &&
                         fref.Parent is TypeReference ftw &&
                         ftw.FullName == "Oxide.Plugins.Timers" &&
@@ -161,22 +161,22 @@ public class OxideILSwitch : BaseOxidePatch
                         switch (fref.Name.ToString())
                         {
                             case "Once":
-                                cil.Operand = importer.ImportMethod(timerOnce);
+                                CIL.Operand = importer.ImportMethod(timerOnce);
                                 goto cend;
                             case "Repeat":
-                                cil.Operand = importer.ImportMethod(timerRepeat);
+                                CIL.Operand = importer.ImportMethod(timerRepeat);
                                 goto cend;
                             default:
                                 continue;
                         }
                         cend:
-                        cil.OpCode = CilOpCodes.Call;
+                        CIL.OpCode = CilOpCodes.Call;
                         continue;
                     }
 
                     // change GetLibrary<Oxide.Plugins.Timers> to this.timer
-                    if (isRustPluginInstance && cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MethodSpecification gspec &&
+                    if (isRustPluginInstance && CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MethodSpecification gspec &&
                         gspec.Method is MemberReference gref &&
                         gref.Parent is TypeReference gtw &&
                         gref.Name == "GetLibrary" &&
@@ -185,8 +185,8 @@ public class OxideILSwitch : BaseOxidePatch
                         gspec.Signature.TypeArguments[0].FullName == "Oxide.Plugins.Timers" &&
                         gtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.OpCode = CilOpCodes.Pop;
-                        cil.Operand = null;
+                        CIL.OpCode = CilOpCodes.Pop;
+                        CIL.Operand = null;
                         body.Instructions.InsertRange(++index, new CilInstruction[]
                         {
                             new CilInstruction(CilOpCodes.Pop),
@@ -197,8 +197,8 @@ public class OxideILSwitch : BaseOxidePatch
                     }
 
                     // PluginManagerEvent fix
-                    if (cil.OpCode == CilOpCodes.Ldfld &&
-                        cil.Operand is MemberReference href &&
+                    if (CIL.OpCode == CilOpCodes.Ldfld &&
+                        CIL.Operand is MemberReference href &&
                         href.Signature is FieldSignature hsig &&
                         href.Parent is TypeReference htw &&
                         htw.FullName == "Oxide.Core.Plugins.Plugin" &&
@@ -208,22 +208,22 @@ public class OxideILSwitch : BaseOxidePatch
                         switch (href.Name.ToString())
                         {
                             case "OnAddedToManager":
-                                cil.Operand = importer.ImportMethod(onAddedToManagerCompat);
+                                CIL.Operand = importer.ImportMethod(onAddedToManagerCompat);
                                 goto cend;
                             case "OnRemovedFromManager":
-                                cil.Operand = importer.ImportMethod(onRemovedFromManagerCompat);
+                                CIL.Operand = importer.ImportMethod(onRemovedFromManagerCompat);
                                 goto cend;
                             default:
                                 continue;
                         }
                         cend:
-                        cil.OpCode = CilOpCodes.Call;
+                        CIL.OpCode = CilOpCodes.Call;
                         continue;
                     }
 
                     // lang.GetMessage fix #blame raul https://github.com/CarbonCommunity/Carbon.Core/commit/ef572b68b989df687c3d764e31968ca3b239ab9e
-                    if (cil.OpCode == CilOpCodes.Callvirt &&
-                        cil.Operand is MemberReference iref &&
+                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                        CIL.Operand is MemberReference iref &&
                         iref.Signature is MethodSignature isig &&
                         iref.Parent is TypeReference itw &&
                         itw.FullName == "Oxide.Core.Libraries.Lang" &&
@@ -235,7 +235,7 @@ public class OxideILSwitch : BaseOxidePatch
                         isig.ParameterTypes[2].ElementType == ElementType.String &&
                         itw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
-                        cil.Operand = importer.ImportMethod(carbonLangGetMessage);
+                        CIL.Operand = importer.ImportMethod(carbonLangGetMessage);
                         for (int idx = 0; idx < carbonLangGetMessageArgLength-isig.ParameterTypes.Count; idx++)
                         {
                             body.Instructions.Insert(index++, new CilInstruction(CilOpCodes.Ldnull));

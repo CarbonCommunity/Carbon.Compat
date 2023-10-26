@@ -1,5 +1,6 @@
 using API.Assembly;
 using API.Events;
+using AsmResolver.DotNet.Collections;
 using HarmonyLib;
 
 namespace Carbon.Compat.Patches;
@@ -21,19 +22,19 @@ public static class CodeGenHelpers
 			MethodAttributes.HideBySig |
 			MethodAttributes.NewSlot |
 			MethodAttributes.Virtual;
-		
+
 		// define type
-		var entrypoint = new TypeDefinition($"<__CarbonGen:{name}__>", $"<entrypoint:{guid:N}>",
+		TypeDefinition entrypoint = new TypeDefinition($"<__CarbonGen:{name}__>", $"<entrypoint:{guid:N}>",
 			TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout | TypeAttributes.NotPublic, asm.CorLibTypeFactory.Object.Type
 		);
 		entrypoint.Interfaces.Add(new InterfaceImplementation(importer.ImportType(typeof(ICarbonAddon))));
 		entrypoint.Interfaces.Add(new InterfaceImplementation(importer.ImportType(typeof(ICarbonExtension))));
 		entrypoint.AddDefaultCtor(asm, importer);
 
-		var eventArgsRef = importer.ImportTypeSignature(typeof(EventArgs));
+		TypeSignature eventArgsRef = importer.ImportTypeSignature(typeof(EventArgs));
 
 		// define not used methods
-		var onAwake = new MethodDefinition(nameof(ICarbonAddon.Awake), attr, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void, eventArgsRef));
+		MethodDefinition onAwake = new MethodDefinition(nameof(ICarbonAddon.Awake), attr, MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void, eventArgsRef));
 		entrypoint.MethodImplementations.Add(new MethodImplementation((IMethodDefOrRef)importer.ImportMethod(AccessTools.Method(typeof(ICarbonAddon), nameof(ICarbonAddon.Awake))), onAwake));
 		entrypoint.Methods.Add(onAwake);
 
@@ -56,7 +57,7 @@ public static class CodeGenHelpers
 	public static void GenerateCarbonEventCall(CilMethodBody body, ReferenceImporter importer, ref int index, CarbonEvent eventId, MethodDefinition method, CilInstruction self = null, string event_method = "Subscribe")
 	{
 		self ??= new CilInstruction(CilOpCodes.Ldnull);
-		var il = new List<CilInstruction>()
+		List<CilInstruction> IL = new List<CilInstruction>()
 		{
 			new CilInstruction(CilOpCodes.Call, importer.ImportMethod(AccessTools.PropertyGetter(typeof(Carbon.Community), "Runtime"))),
 			new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.PropertyGetter(typeof(Carbon.Community), "Events"))),
@@ -69,73 +70,73 @@ public static class CodeGenHelpers
 			}))),
 			new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(API.Events.IEventManager), event_method)))
 		};
-		body.Instructions.InsertRange(index, il);
-		index += il.Count;
+		body.Instructions.InsertRange(index, IL);
+		index += IL.Count;
 	}
 
 	public static void DoMultiMethodCall(CilMethodBody body, ref int index, List<MethodDefinition> staticMethods, List<KeyValuePair<TypeDefinition, List<MethodDefinition>>> internalInstances)
 	{
-		var il = new List<CilInstruction>();
+		List<CilInstruction> IL = new List<CilInstruction>();
 
 		if (staticMethods != null)
 		{
-			foreach (var method in staticMethods)
+			foreach (MethodDefinition method in staticMethods)
 			{
-				foreach (var parameter in method.Parameters)
+				foreach (Parameter parameter in method.Parameters)
 				{
 					if (!parameter.ParameterType.IsValueType)
 					{
-						il.Add(new CilInstruction(CilOpCodes.Ldnull));
+						IL.Add(new CilInstruction(CilOpCodes.Ldnull));
 						continue;
 					}
 				}
-				il.Add(new CilInstruction(CilOpCodes.Call, method));
+				IL.Add(new CilInstruction(CilOpCodes.Call, method));
 				if (method.Signature.ReturnsValue)
 				{
-					il.Add(new CilInstruction(CilOpCodes.Pop));
+					IL.Add(new CilInstruction(CilOpCodes.Pop));
 				}
 			}
 		}
 
 		if (internalInstances != null)
 		{
-			foreach (var instance in internalInstances)
+			foreach (KeyValuePair<TypeDefinition, List<MethodDefinition>> instance in internalInstances)
 			{
-				var type = instance.Key;
-				var calls = instance.Value;
+				TypeDefinition type = instance.Key;
+				List<MethodDefinition> calls = instance.Value;
 
-				il.Add(new CilInstruction(CilOpCodes.Newobj, type.Methods.First(x => x.Parameters.Count == 0 && x.Name == ".ctor")));
+				IL.Add(new CilInstruction(CilOpCodes.Newobj, type.Methods.First(x => x.Parameters.Count == 0 && x.Name == ".ctor")));
 
 				if (calls.Count > 1)
 				{
 					for (int i = 0; i < calls.Count - 1; i++) // probably a bad idea but who cares
 					{
-						il.Add(new CilInstruction(CilOpCodes.Dup));
+						IL.Add(new CilInstruction(CilOpCodes.Dup));
 					}
 				}
 
-				foreach (var method in calls)
+				foreach (MethodDefinition method in calls)
 				{
-					foreach (var parameter in method.Parameters)
+					foreach (Parameter parameter in method.Parameters)
 					{
 						if (!parameter.ParameterType.IsValueType)
 						{
-							il.Add(new CilInstruction(CilOpCodes.Ldnull));
+							IL.Add(new CilInstruction(CilOpCodes.Ldnull));
 							continue;
 						}
 					}
 
-					il.Add(new CilInstruction(CilOpCodes.Callvirt, method));
+					IL.Add(new CilInstruction(CilOpCodes.Callvirt, method));
 
 					if (method.Signature.ReturnsValue)
 					{
-						il.Add(new CilInstruction(CilOpCodes.Pop));
+						IL.Add(new CilInstruction(CilOpCodes.Pop));
 					}
 				}
 			}
 		}
 
-		body.Instructions.InsertRange(index, il);
-		index += il.Count;
+		body.Instructions.InsertRange(index, IL);
+		index += IL.Count;
 	}
 }
