@@ -2,34 +2,48 @@ using System.Diagnostics;
 using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
-public class ASMDebugPatch : IASMPatch
+
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
+public class AssemblyDebugPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (TypeDefinition td in asm.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            foreach (MethodDefinition method in td.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
                 CilMethodBody body = method.CilMethodBody;
-                if (body == null) continue;
-                for (int index = 0; index < body.Instructions.Count; index++)
+
+                if (body == null)
                 {
-                    CilInstruction CIL = body.Instructions[index];
-                    if (CIL.OpCode == CilOpCodes.Call && CIL.Operand is MemberReference mref && mref.DeclaringType.DefinitionAssembly().IsCorLib &&
+	                continue;
+                }
+
+                for (int i = 0; i < body.Instructions.Count; i++)
+                {
+                    CilInstruction cil = body.Instructions[i];
+
+                    if (cil.OpCode == CilOpCodes.Call && cil.Operand is MemberReference mref && mref.DeclaringType.DefinitionAssembly().IsCorLib &&
                         mref.Signature is MethodSignature msig && (( mref.DeclaringType.Name == "Debugger" && ( mref.Name == "get_IsAttached" || mref.Name == "IsLogging" )) ||
                                                                    ( mref.DeclaringType.Name == "Environment" && mref.Name == "FailFast" ) ) )
                     {
-                        //Logger.Debug($"Found {CIL}");
                         for (int pc = 0; pc < msig.ParameterTypes.Count; pc++)
                         {
-                            body.Instructions.Insert(index, new CilInstruction(CilOpCodes.Pop));
-                            index++;
+                            body.Instructions.Insert(i, new CilInstruction(CilOpCodes.Pop));
+                            i++;
                         }
 
                         if (msig.ReturnType.ElementType == ElementType.Boolean)
                         {
-                            CIL.OpCode = CilOpCodes.Ldc_I4_0;
-                            CIL.Operand = null;
+                            cil.OpCode = CilOpCodes.Ldc_I4_0;
+                            cil.Operand = null;
                             continue;
                         }
 
@@ -37,40 +51,40 @@ public class ASMDebugPatch : IASMPatch
                         {
                             if (!msig.ReturnType.IsValueType)
                             {
-                                body.Instructions.Insert(index, new CilInstruction(CilOpCodes.Ldnull));
-                                index++;
+                                body.Instructions.Insert(i, new CilInstruction(CilOpCodes.Ldnull));
+                                i++;
                             }
                         }
 
-                        body.Instructions.RemoveAt(index);
-                        index--;
+                        body.Instructions.RemoveAt(i);
+                        i--;
                     }
                 }
             }
         }
+
     #if DEBUG
-        for (int index = 0; index < asm.Assembly.CustomAttributes.Count; index++)
+        for (int index = 0; index < assembly.Assembly.CustomAttributes.Count; index++)
         {
-            CustomAttribute attr = asm.Assembly.CustomAttributes[index];
-            if (
-                attr.Constructor.DeclaringType.FullName == "System.Diagnostics.DebuggableAttribute" &&
-                attr.Constructor.DeclaringType.DefinitionAssembly().IsCorLib)
+            CustomAttribute attr = assembly.Assembly.CustomAttributes[index];
+
+            if (attr.Constructor.DeclaringType.FullName == "System.Diagnostics.DebuggableAttribute" && attr.Constructor.DeclaringType.DefinitionAssembly().IsCorLib)
             {
-                asm.Assembly.CustomAttributes.RemoveAt(index--);
+                assembly.Assembly.CustomAttributes.RemoveAt(index--);
             }
         }
 
         TypeSignature enumRef = importer.ImportTypeSignature(typeof(DebuggableAttribute.DebuggingModes));
         CustomAttribute debugAttr = new CustomAttribute(importer.ImportType(typeof(DebuggableAttribute))
                 .CreateMemberReference(".ctor",
-                    MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void,
+                    MethodSignature.CreateInstance(assembly.CorLibTypeFactory.Void,
                         importer.ImportTypeSignature(typeof(DebuggableAttribute.DebuggingModes)))).ImportWith(importer),
             new CustomAttributeSignature(new CustomAttributeArgument(enumRef,
                 (int)(DebuggableAttribute.DebuggingModes.DisableOptimizations |
                       DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints |
                       DebuggableAttribute.DebuggingModes.EnableEditAndContinue))));
 
-        asm.Assembly.CustomAttributes.Add(debugAttr);
+        assembly.Assembly.CustomAttributes.Add(debugAttr);
     #endif
     }
 }

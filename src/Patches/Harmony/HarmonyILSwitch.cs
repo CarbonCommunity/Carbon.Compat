@@ -4,19 +4,33 @@ using HarmonyLib;
 
 namespace Carbon.Compat.Patches.Harmony;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class HarmonyILSwitch : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
         IMethodDescriptor PatchProcessorCompatRef = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat), nameof(HarmonyCompat.PatchProcessorCompat)));
-        foreach (TypeDefinition td in asm.GetAllTypes())
+
+        foreach (TypeDefinition type in asm.GetAllTypes())
         {
-            foreach (MethodDefinition method in td.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
-                if (!(method.MethodBody is CilMethodBody body)) continue;
-                for (int index = 0; index < body.Instructions.Count; index++)
+	            if (method.MethodBody is not CilMethodBody body)
+	            {
+		            continue;
+	            }
+
+                for (int i = 0; i < body.Instructions.Count; i++)
                 {
-                    CilInstruction CIL = body.Instructions[index];
+                    CilInstruction CIL = body.Instructions[i];
+
                     // IL Patches
                     if (CIL.OpCode == CilOpCodes.Call && CIL.Operand is MemberReference { FullName: $"{Harmony2NS}.{HarmonyStr} {Harmony2NS}.{HarmonyStr}::Create(System.String)" })
                     {
@@ -39,19 +53,33 @@ public class HarmonyILSwitch : BaseHarmonyPatch
                         cref.DeclaringType.Name == "PatchProcessor" &&
                         cref.Name == "Patch")
                     {
-                        if (index != 0)
+                        if (i != 0)
                         {
-                            CilInstruction ccall = body.Instructions[index - 1];
+                            CilInstruction ccall = body.Instructions[i - 1];
+
                             if (ccall.OpCode == CilOpCodes.Call && ccall.Operand == PatchProcessorCompatRef)
                             {
-                                body.Instructions.RemoveAt(index);
-                                CilInstruction pop = body.Instructions[index];
+                                body.Instructions.RemoveAt(i);
+
+                                CilInstruction pop = body.Instructions[i];
+
                                 if (pop.OpCode == CilOpCodes.Pop)
                                 {
-                                    body.Instructions.RemoveAt(index);
+                                    body.Instructions.RemoveAt(i);
                                 }
                             }
                         }
+                    }
+
+
+                    if ((CIL.OpCode == CilOpCodes.Callvirt || CIL.OpCode ==  CilOpCodes.Call) && CIL.Operand is MemberReference dref &&
+                        dref.DeclaringType.DefinitionAssembly().Name == HarmonyASM &&
+                        dref.Name == "Patch")
+                    {
+	                    CIL.Operand = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat),
+		                    nameof(HarmonyCompat.InstancePatchCompat)));
+	                    CIL.OpCode = CilOpCodes.Call;
+
                     }
                 }
             }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
@@ -5,30 +6,48 @@ using Facepunch;
 
 namespace Carbon.Compat.Patches.Harmony;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class HarmonyPatchProcessor : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (TypeDefinition td in asm.GetAllTypes())
+        foreach (TypeDefinition type in asm.GetAllTypes())
         {
             bool invalid = false;
-            List<CustomAttribute> patches = Pool.GetList<CustomAttribute>(); // who needs pooling
-            foreach (CustomAttribute attr in td.CustomAttributes)
+
+            List<CustomAttribute> patches = Pool.GetList<CustomAttribute>();
+
+            foreach (CustomAttribute attr in type.CustomAttributes)
             {
-                ITypeDefOrRef dc = attr.Constructor?.DeclaringType;
-                if (dc == null) continue;
-                CustomAttributeSignature sig = attr.Signature;
-                if (sig == null) continue;
-                if (dc.Name == "HarmonyPatch" && dc.Scope is SerializedAssemblyReference aref &&
-                    aref.Name == HarmonyASM)
+                ITypeDefOrRef declaringType = attr.Constructor?.DeclaringType;
+
+                if (declaringType == null)
                 {
-                    if (sig.FixedArguments.Count > 1 && sig.FixedArguments[0].Element is TypeDefOrRefSignature tr &&
-                        sig.FixedArguments[1].Element is Utf8String ats)
+	                continue;
+                }
+
+                CustomAttributeSignature sig = attr.Signature;
+
+                if (sig == null)
+                {
+	                continue;
+                }
+
+                if (declaringType.Name == "HarmonyPatch" && declaringType.Scope is SerializedAssemblyReference aref && aref.Name == HarmonyASM)
+                {
+                    if (sig.FixedArguments.Count > 1 && sig.FixedArguments[0].Element is TypeDefOrRefSignature tr && sig.FixedArguments[1].Element is Utf8String ats)
                     {
-                        RegisterPatch(tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {td.FullName}");
+                        RegisterPatch(tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {type.FullName}");
+
                         if (!PatchWhitelist.IsPatchAllowed(tr, ats))
                         {
-                            //Logger.Debug($"Unpatching {td.FullName}::{ats}", 2);
                             invalid = true;
                             patches.Add(attr);
                             break;
@@ -36,9 +55,8 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
                     }
                     else
                     {
-                        if (!PatchWhitelist.IsPatchAllowed(td, out string reason))
+                        if (!PatchWhitelist.IsPatchAllowed(type))
                         {
-                            //Logger.Info($"Unpatching {td.FullName} ({reason})");
                             invalid = true;
                             patches.Add(attr);
                             break;
@@ -49,36 +67,51 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 
             if (invalid)
             {
-                td.CustomAttributes.Add(new CustomAttribute(asm.CorLibTypeFactory.CorLibScope.CreateTypeReference( // black magic
-                    "System", "ObsoleteAttribute").CreateMemberReference(".ctor",
-                    MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void)).ImportWith(importer)));
+                type.CustomAttributes.Add(new CustomAttribute(asm.CorLibTypeFactory.CorLibScope.CreateTypeReference("System", "ObsoleteAttribute").CreateMemberReference(".ctor", MethodSignature.CreateInstance(asm.CorLibTypeFactory.Void)).ImportWith(importer)));
+
                 foreach (CustomAttribute attr in patches)
                 {
-                    td.CustomAttributes.Remove(attr);
+                    type.CustomAttributes.Remove(attr);
                 }
             }
         }
     }
 
-    public static void RegisterPatch(string ASMName, string MethodName, string TypeName, string reason)
+    public static void RegisterPatch(string assemblyName, string methodName, string typeName, string reason)
     {
-        CurrentPatches.Add(new PatchInfoEntry(ASMName, MethodName, TypeName, reason));
-        //Logger.Info($"Found harmony patch {ASMName} - {TypeName}::{MethodName} from {reason}");
+	    CurrentPatches.Add(new PatchInfoEntry(assemblyName, methodName, typeName, reason));
+    #if DEBUG
+	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason}");
+    #endif
+    }
+
+    public static void RegisterPatch(MethodBase method, string reason)
+    {
+	    CurrentPatches.Add(new PatchInfoEntry(method));
+    #if DEBUG
+	    Logger.Debug($"Found harmony patch {method.DeclaringType.Assembly.GetName().Name} - {method.DeclaringType.Name}::{method.Name} from {reason}");
+    #endif
     }
 
     public class PatchInfoEntry
     {
-        public string ASMName;
+        public string AssemblyName;
         public string TypeName;
         public string MethodName;
-        public string reason;
+        public string Reason;
+        public MethodBase runtime_method;
 
-        public PatchInfoEntry(string ASMName, string methodName, string typeName, string reason)
+        public PatchInfoEntry(string assemblyName, string methodName, string typeName, string reason)
         {
-            this.ASMName = ASMName;
+            this.AssemblyName = assemblyName;
             this.MethodName = methodName;
             this.TypeName = typeName;
-            this.reason = reason;
+            this.Reason = reason;
+        }
+
+        public PatchInfoEntry(MethodBase method)
+        {
+	        this.runtime_method = method;
         }
     }
 
@@ -103,28 +136,28 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
             "Oxide.Core"
         };
 
-        public static bool IsPatchAllowed(TypeDefinition type, out string reason)
+        public static bool IsPatchAllowed(TypeDefinition type)
         {
             MethodDefinition target = type.Methods.FirstOrDefault(x => x.CustomAttributes.Any(y =>
                 y.Constructor.DeclaringType.Name == "HarmonyTargetMethods" &&
                 y.Constructor.DeclaringType.Scope is SerializedAssemblyReference asmref &&
-                asmref.Name == BaseHarmonyPatch.HarmonyASM));
+                asmref.Name == HarmonyASM));
             if (target?.MethodBody is not CilMethodBody body) goto End;
+
             for (int index = 0; index < body.Instructions.Count; index++)
             {
                 CilInstruction CIL = body.Instructions[index];
+
                 if (CIL.OpCode == CilOpCodes.Ldstr && CIL.Operand is string str)
                 {
                     if (string_blacklist.Contains(str))
                     {
-                        reason = $"blacklisted string \"{str}\"";
-                        return false;
+	                    return false;
                     }
                 }
             }
 
             End:
-            reason = null;
             return true;
         }
     }
