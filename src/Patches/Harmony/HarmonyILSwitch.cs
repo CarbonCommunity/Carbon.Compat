@@ -76,7 +76,6 @@ public class HarmonyILSwitch : BaseHarmonyPatch
                         dref.DeclaringType.DefinitionAssembly().Name == HarmonyASM &&
                         dref.Name == "Patch")
                     {
-	                    Logger.Log("Found patchy call!");
 	                    CIL.Operand = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat),
 		                    nameof(HarmonyCompat.InstancePatchCompat)));
 	                    CIL.OpCode = CilOpCodes.Call;

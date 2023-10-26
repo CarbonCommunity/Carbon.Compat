@@ -1,4 +1,6 @@
 using API.Events;
+using Carbon.Compat.Legacy.EventCompat;
+using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
@@ -46,7 +48,7 @@ public partial class OxideCompat
         ev?.Invoke(plugin, plugin.Manager);
     }
 
-    public class PluginManagerEvent : Legacy.EventCompat.OxideEvents.Event<Plugin, PluginManager>
+    public class PluginManagerEvent : OxideEvents.Event<Plugin, PluginManager>
     {
 
     }
