@@ -55,7 +55,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 		    return false;
 	    }
 
-	    Logger.Log($"{converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+	    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
 
 	    stopwatch.Reset();
 	    Pool.Free(ref stopwatch);
