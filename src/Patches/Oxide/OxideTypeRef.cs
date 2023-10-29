@@ -150,6 +150,12 @@ public class OxideTypeRef : BaseOxidePatch
 	        return;
         }
 
+        if (type.Namespace.StartsWith("WebSocketSharp"))
+        {
+	        type.Scope = CompatManager.wsSharp.ImportWith(importer);
+	        return;
+        }
+
         if (type.Name == "VersionNumber")
         {
 	        goto sdk;
