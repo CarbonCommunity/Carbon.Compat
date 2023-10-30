@@ -135,6 +135,11 @@ public class OxideTypeRef : BaseOxidePatch
 	        return;
         }
 
+        if (type.FullName == "Oxide.Core.Plugins.PluginEvent")
+        {
+	        type.Namespace = string.Empty;
+        }
+
         if (type.Namespace.StartsWith("Newtonsoft.Json"))
         {
 	        type.Scope = CompatManager.Newtonsoft.ImportWith(importer);
@@ -152,6 +157,9 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.Namespace.StartsWith("WebSocketSharp"))
         {
+	        if (type.Namespace == "WebSocketSharp.Net" && type.Name == "SslConfiguration")
+		        type.Name = "ClientSslConfiguration";
+
 	        type.Scope = CompatManager.wsSharp.ImportWith(importer);
 	        return;
         }
