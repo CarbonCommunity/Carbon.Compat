@@ -24,7 +24,7 @@ public static class CodeGenHelpers
 			MethodAttributes.Virtual;
 
 		// define type
-		TypeDefinition entrypoint = new TypeDefinition($"<__CarbonGen:{name}__>", $"<entrypoint:{guid:N}>",
+		TypeDefinition entrypoint = new TypeDefinition($"Carbon.Compat.Generated.{name}", $"Entrypoint",
 			TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout | TypeAttributes.NotPublic, asm.CorLibTypeFactory.Object.Type
 		);
 		entrypoint.Interfaces.Add(new InterfaceImplementation(importer.ImportType(typeof(ICarbonAddon))));

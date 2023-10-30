@@ -29,15 +29,19 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	private ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
 
-    public static AssemblyReference SDK = new AssemblyReference("Carbon.SDK", new Version(0, 0, 0, 0));
+	private static Version zeroVersion = new Version(0,0,0,0);
 
-    public static AssemblyReference Common = new AssemblyReference("Carbon.Common", new Version(0, 0, 0, 0));
+    public static AssemblyReference SDK = new AssemblyReference("Carbon.SDK", zeroVersion);
 
-    public static AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", new Version(0, 0, 0, 0));
+    public static AssemblyReference Common = new AssemblyReference("Carbon.Common", zeroVersion);
 
-    public static AssemblyReference protobuf = new AssemblyReference("protobuf-net", new Version(0, 0, 0, 0));
+    public static AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", zeroVersion);
 
-    public static AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", new Version(0, 0, 0, 0));
+    public static AssemblyReference protobuf = new AssemblyReference("protobuf-net", zeroVersion);
+
+    public static AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", zeroVersion);
+
+    public static AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
 
     private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer)
     {

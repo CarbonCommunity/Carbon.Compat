@@ -62,19 +62,38 @@ public class OxideEntrypoint : BaseOxidePatch
         foreach (TypeDefinition entry in entryPoints)
         {
             MethodDefinition extLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "Load" && x.IsVirtual);
+            MethodDefinition extOnModLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "OnModLoad" && x.IsVirtual && x.Parameters.Count == 0);
             MethodDefinition extCtor = entry.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 1);
 
-            if (extLoadMethod == null)
+            if (extLoadMethod == null && extOnModLoadMethod == null)
             {
 	            continue;
             }
+
+            CilLocalVariable objVar = new CilLocalVariable(entry.ToTypeSignature());
+
+            serverInit.CilMethodBody.LocalVariables.Add(objVar);
+
+            short idx = (short)(serverInit.CilMethodBody.LocalVariables.Count-1);
 
             serverInit.CilMethodBody.Instructions.AddRange(new[]
             {
                 new CilInstruction(CilOpCodes.Ldnull),
                 new CilInstruction(CilOpCodes.Newobj, extCtor),
-                new CilInstruction(CilOpCodes.Callvirt, extLoadMethod)
+                new CilInstruction(CilOpCodes.Stloc, idx)
             });
+
+            if (extLoadMethod != null)
+            {
+	            serverInit.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ldloc, idx));
+	            serverInit.CilMethodBody.Instructions.Add(CilOpCodes.Callvirt, extLoadMethod);
+            }
+
+            if (extOnModLoadMethod != null)
+            {
+	            serverInit.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ldloc, idx));
+	            serverInit.CilMethodBody.Instructions.Add(CilOpCodes.Callvirt, extOnModLoadMethod);
+            }
         }
 
         serverInit.CilMethodBody.Instructions.Add(postHookRet);
