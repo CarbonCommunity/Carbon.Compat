@@ -9,6 +9,14 @@ using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Compat.Lib;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public static partial class OxideCompat
 {
@@ -20,19 +28,20 @@ public static partial class OxideCompat
     {
         self.RegisterPluginLoader(loader);
 
-        var asmName = Assembly.GetCallingAssembly().GetName().Name;
+        string asmName = Assembly.GetCallingAssembly().GetName().Name;
         Logger.Debug($"Oxide plugin loader call using {loader.GetType().FullName} from assembly {asmName}", 2);
 
-        var asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
-        var name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
-        var author = oxideExt != null ? oxideExt.Author : "CCL";
+        Assembly asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
+        string name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
+        string author = oxideExt != null ? oxideExt.Author : "Carbon.Compat";
 
         if (!modPackages.TryGetValue(asm, out ModLoader.ModPackage package))
         {
             package = new ModLoader.ModPackage
             {
-                Name = $"{name} - {author} (CCL Oxide Extension)"
+                Name = $"{name} - {author} (Oxide Extension)"
             };
+
             ModLoader.LoadedPackages.Add(package);
             modPackages[asm] = package;
         }
@@ -49,7 +58,7 @@ public static partial class OxideCompat
                     rustPlugin =>
                     {
                         rustPlugin.Version = oxideExt.Version;
-                        if (rustPlugin.Author == "CCL" && !string.IsNullOrWhiteSpace(oxideExt.Author))
+                        if (rustPlugin.Author == "Carbon.Compat" && !string.IsNullOrWhiteSpace(oxideExt.Author))
                             rustPlugin.Author = oxideExt.Author;
                     });
                 plugin.IsExtension = true;

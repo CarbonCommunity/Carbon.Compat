@@ -7,6 +7,14 @@ using Oxide.Plugins;
 
 namespace Carbon.Compat.Patches.Oxide;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class OxideILSwitch : BaseOxidePatch
 {
 	public static CompatManager Singleton => Community.Runtime.Compat as CompatManager;
@@ -14,14 +22,14 @@ public class OxideILSwitch : BaseOxidePatch
     private static MethodInfo pluginLoaderMethod = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.RegisterPluginLoader));
     private static MethodInfo consoleCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddConsoleCommand1));
     private static MethodInfo chatCommand1 = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.AddChatCommand1));
-    private static MethodInfo GetExtensionDirectory = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.GetExtensionDirectory));
-    private static MethodInfo TimerOnce = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerOnce));
-    private static MethodInfo TimerRepeat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerRepeat));
+    private static MethodInfo getExtensionDirectory = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.GetExtensionDirectory));
+    private static MethodInfo timerOnce = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerOnce));
+    private static MethodInfo timerRepeat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.TimerRepeat));
 
-    private static MethodInfo OnAddedToManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnAddedToManagerCompat));
-    private static MethodInfo OnRemovedFromManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnRemovedFromManagerCompat));
+    private static MethodInfo onAddedToManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnAddedToManagerCompat));
+    private static MethodInfo onRemovedFromManagerCompat = AccessTools.Method(typeof(OxideCompat), nameof(OxideCompat.OnRemovedFromManagerCompat));
 
-    private static FieldInfo RustPluginTimer = AccessTools.Field(typeof(RustPlugin), "timer");
+    private static FieldInfo rustPluginTimer = AccessTools.Field(typeof(RustPlugin), "timer");
 
     private static readonly MethodInfo carbonLangGetMessage;
     private static int carbonLangGetMessageArgLength;
@@ -31,16 +39,22 @@ public class OxideILSwitch : BaseOxidePatch
         carbonLangGetMessage = typeof(Lang).GetMethods().First(x => x.Name == "GetMessage" && x.ReturnType == typeof(string));
         carbonLangGetMessageArgLength = carbonLangGetMessage.GetParameters().Length;
     }
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (TypeDefinition td in asm.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            bool classIsRustPlugin = td.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
-            bool classOxideExtension = td.IsBaseType(x => x.FullName == "Oxide.Core.Extensions.Extension" && x.DefinitionAssembly().Name == "Carbon.Common");
-            foreach (MethodDefinition method in td.Methods)
+            bool classIsRustPlugin = type.IsBaseType(x => x.Name == "RustPlugin" && x.DefinitionAssembly().Name == "Carbon.Common");
+            bool classOxideExtension = type.IsBaseType(x => x.FullName == "Oxide.Core.Extensions.Extension" && x.DefinitionAssembly().Name == "Carbon.Common");
+
+            foreach (MethodDefinition method in type.Methods)
             {
                 bool isRustPluginInstance = !method.IsStatic && classIsRustPlugin;
-                if (method.MethodBody is not CilMethodBody body) continue;
+
+                if (method.MethodBody is not CilMethodBody body)
+                {
+	                continue;
+                }
+
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
                     CilInstruction CIL = body.Instructions[index];
@@ -131,7 +145,7 @@ public class OxideILSwitch : BaseOxidePatch
                         etw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Call;
-                        CIL.Operand = importer.ImportMethod(GetExtensionDirectory);
+                        CIL.Operand = importer.ImportMethod(getExtensionDirectory);
                         continue;
                     }
 
@@ -147,10 +161,10 @@ public class OxideILSwitch : BaseOxidePatch
                         switch (fref.Name.ToString())
                         {
                             case "Once":
-                                CIL.Operand = importer.ImportMethod(TimerOnce);
+                                CIL.Operand = importer.ImportMethod(timerOnce);
                                 goto cend;
                             case "Repeat":
-                                CIL.Operand = importer.ImportMethod(TimerRepeat);
+                                CIL.Operand = importer.ImportMethod(timerRepeat);
                                 goto cend;
                             default:
                                 continue;
@@ -177,7 +191,7 @@ public class OxideILSwitch : BaseOxidePatch
                         {
                             new CilInstruction(CilOpCodes.Pop),
                             new CilInstruction(CilOpCodes.Ldarg_0),
-                            new CilInstruction(CilOpCodes.Ldfld, importer.ImportField(RustPluginTimer))
+                            new CilInstruction(CilOpCodes.Ldfld, importer.ImportField(rustPluginTimer))
                         });
                         continue;
                     }
@@ -194,10 +208,10 @@ public class OxideILSwitch : BaseOxidePatch
                         switch (href.Name.ToString())
                         {
                             case "OnAddedToManager":
-                                CIL.Operand = importer.ImportMethod(OnAddedToManagerCompat);
+                                CIL.Operand = importer.ImportMethod(onAddedToManagerCompat);
                                 goto cend;
                             case "OnRemovedFromManager":
-                                CIL.Operand = importer.ImportMethod(OnRemovedFromManagerCompat);
+                                CIL.Operand = importer.ImportMethod(onRemovedFromManagerCompat);
                                 goto cend;
                             default:
                                 continue;

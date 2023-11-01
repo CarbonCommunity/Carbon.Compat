@@ -3,27 +3,39 @@ using Carbon.Compat.Lib;
 
 namespace Carbon.Compat.Patches.Harmony;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class HarmonyTypeRef : BaseHarmonyPatch
 {
-    //public TypeReference harmonyCompatRef = MainConverter.SelfModule.TopLevelTypes.First(x =>
-    //    x.Namespace == "CarbonCompatLoader.Lib" && x.Name == nameof(HarmonyCompat)).ToTypeReference();
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (TypeReference tw in asm.GetImportedTypeReferences())
+        foreach (TypeReference type in assembly.GetImportedTypeReferences())
         {
-            AssemblyReference aref = tw.Scope as AssemblyReference;
-            if (aref != null && aref.Name == HarmonyASM)
+            AssemblyReference reference = type.Scope as AssemblyReference;
+
+            if (reference != null && reference.Name == HarmonyASM)
             {
-                if (tw.Namespace.StartsWith(Harmony1NS)) tw.Namespace = Harmony2NS; // Namespace override
-                if (tw.Name == "HarmonyInstance")
+	            if (type.Namespace.StartsWith(Harmony1NS))
+	            {
+		            type.Namespace = Harmony2NS;
+	            }
+	            
+                if (type.Name == "HarmonyInstance")
                 {
-                    tw.Name = "Harmony";
+                    type.Name = "Harmony";
                 }
             }
-            if (aref != null && aref.Name == "Rust.Harmony")
+
+            if (reference != null && reference.Name == "Rust.Harmony")
             {
-                tw.Namespace = $"CarbonCompatLoader.Lib";
-                tw.Scope = (IResolutionScope)importer.ImportType(typeof(HarmonyCompat));
+                type.Namespace = $"Carbon.Compat.Lib";
+                type.Scope = (IResolutionScope)importer.ImportType(typeof(HarmonyCompat));
             }
         }
     }

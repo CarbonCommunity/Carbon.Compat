@@ -1,4 +1,6 @@
 using API.Events;
+using Carbon.Compat.Legacy.EventCompat;
+using Oxide.Core;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
 
@@ -6,6 +8,14 @@ using Oxide.Plugins;
 #pragma warning disable CS0612
 
 namespace Carbon.Compat.Lib;
+
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
 
 public partial class OxideCompat
 {
@@ -24,21 +34,14 @@ public partial class OxideCompat
     {
         RustPlugin plugin = (RustPlugin)args.Payload;
         PluginManagerEvent ev;
-        if (loaded)
-        {
-	        ev = plugin.OnAddedToManager as PluginManagerEvent;
-        }
-        else
-        {
-            ev = plugin.OnRemovedFromManager as PluginManagerEvent;
-        }
 
-    #if DEBUG
+        ev = (loaded ? plugin.OnAddedToManager : plugin.OnRemovedFromManager) as PluginManagerEvent;
+
         Logger.Debug($"Calling {(loaded ? "loaded" : "unloaded")} event for plugin {plugin.Name}", 2);
-    #endif
         ev?.Invoke(plugin, plugin.Manager);
     }
-    public class PluginManagerEvent : Legacy.EventCompat.Event<Plugin, PluginManager>
+
+    public class PluginManagerEvent : OxideEvents.Event<Plugin, PluginManager>
     {
 
     }
@@ -48,8 +51,7 @@ public partial class OxideCompat
         if (plugin.OnAddedToManager is not PluginManagerEvent)
             plugin.OnAddedToManager = new PluginManagerEvent();
 
-        PluginManagerEvent ev = (PluginManagerEvent)plugin.OnAddedToManager;
-        return ev;
+        return (PluginManagerEvent)plugin.OnAddedToManager;
     }
 
     public static PluginManagerEvent OnRemovedFromManagerCompat(Plugin plugin)
@@ -57,7 +59,6 @@ public partial class OxideCompat
         if (plugin.OnRemovedFromManager is not PluginManagerEvent)
             plugin.OnRemovedFromManager = new PluginManagerEvent();
 
-        PluginManagerEvent ev = (PluginManagerEvent)plugin.OnRemovedFromManager;
-        return ev;
+        return (PluginManagerEvent)plugin.OnRemovedFromManager;
     }
 }

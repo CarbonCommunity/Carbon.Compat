@@ -3,7 +3,15 @@ using Carbon.Compat.Converters;
 
 namespace Carbon.Compat.Patches;
 
-public class ReflectionFlagsPatch : IASMPatch
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
+public class ReflectionFlagsPatch : IAssemblyPatch
 {
     public static List<string> ReflectionTypeMethods = new List<string>()
     {
@@ -13,16 +21,21 @@ public class ReflectionFlagsPatch : IASMPatch
         "GetMember"
     };
 
-    public void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (TypeDefinition td in asm.GetAllTypes())
+        foreach (TypeDefinition type in assembly.GetAllTypes())
         {
-            foreach (MethodDefinition method in td.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
-                if (method.MethodBody is not CilMethodBody body) continue;
+	            if (method.MethodBody is not CilMethodBody body)
+	            {
+		            continue;
+	            }
+
                 for (int index = 0; index < body.Instructions.Count; index++)
                 {
                     CilInstruction CIL = body.Instructions[index];
+
                     if (CIL.OpCode == CilOpCodes.Callvirt &&
                         CIL.Operand is MemberReference mref &&
                         mref.Signature is MethodSignature msig &&
@@ -34,25 +47,25 @@ public class ReflectionFlagsPatch : IASMPatch
                         msig.ParameterTypes.Any(x=>x.Scope is AssemblyReference { IsCorLib: true } && x.Name == "BindingFlags")
                        )
                     {
-                        //Logger.Info($"Found binding flags call: {mref.FullName} in method {method.FullName} at {CIL.Offset:x8}");
                         for (int li = index - 1; li >= Math.Max(index-5, 0); li--)
                         {
-                            CilInstruction XIL = body.Instructions[li];
-                            if (!XIL.IsLdcI4())
+                            CilInstruction xil = body.Instructions[li];
+
+                            if (!xil.IsLdcI4())
                             {
-                                //Logger.Info($"{XIL.OpCode.ToString()} is not ldci4");
                                 continue;
                             }
-                            //Logger.Info($"old: {old}");
-                            BindingFlags flags = (BindingFlags)XIL.GetLdcI4Constant() | BindingFlags.Public | BindingFlags.NonPublic;
-                            //Logger.Info($"new: {flags}");
-                            XIL.Operand = (object)(int)flags;
-                            XIL.OpCode = CilOpCodes.Ldc_I4;
-                            //Logger.Info($"Changed flags at {XIL.Offset:x8}");
+
+                            BindingFlags flags = (BindingFlags)xil.GetLdcI4Constant() | BindingFlags.Public | BindingFlags.NonPublic;
+
+                            xil.Operand = (object)(int)flags;
+                            xil.OpCode = CilOpCodes.Ldc_I4;
+
                             goto exit;
                         }
-                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{CIL.Offset:X}:{index} in {asm.Name}");
+                        Logger.Error($"Failed to find binding flags for {method.FullName} at #IL_{CIL.Offset:X}:{index} in {assembly.Name}");
                     }
+
                     exit: ;
                 }
             }

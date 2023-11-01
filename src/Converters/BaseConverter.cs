@@ -5,51 +5,49 @@ using Carbon.Compat.Patches;
 
 namespace Carbon.Compat.Converters;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public abstract class BaseConverter
 {
-    public abstract ImmutableList<IASMPatch> patches { get;}
+    public abstract ImmutableList<IAssemblyPatch> Patches { get;}
 
     public abstract string Name { get; }
 
-    public class GenInfo
-    {
-        //public AssemblyReference selfRef;
+    internal static ManagedPEImageBuilder _imageBuilder = new ManagedPEImageBuilder();
+    internal static ManagedPEFileBuilder _fileBuilder = new ManagedPEFileBuilder();
 
-        public bool noEntryPoint = false;
-
-        public string author = null;
-
-        public TokenMapping mappings;
-
-        public GenInfo()//;AssemblyReference self)
-        {
-            //selfRef = self;
-        }
-    }
-
-    private static ManagedPEImageBuilder builder = new ManagedPEImageBuilder();
-    private static ManagedPEFileBuilder file_builder = new ManagedPEFileBuilder();
-
-    public byte[] Convert(ModuleDefinition asm)//, out GenInfo info)
+    public byte[] Convert(ModuleDefinition asm)
     {
         ReferenceImporter importer = new ReferenceImporter(asm);
-        GenInfo info = new GenInfo();
+        Context info = default;
 
-        foreach (IASMPatch patch in patches)
+        foreach (IAssemblyPatch patch in Patches)
         {
             patch.Apply(asm, importer, info);
         }
 
-        PEImageBuildResult result = builder.CreateImage(asm);
+        PEImageBuildResult result = _imageBuilder.CreateImage(asm);
 
-        if (result.HasFailed) throw new MetadataBuilderException("it failed :(");
-
-        info.mappings = (TokenMapping)result.TokenMapping;
+        if (result.HasFailed)
+        {
+	        throw new MetadataBuilderException("it failed :(");
+        }
 
         using (MemoryStream ms = new MemoryStream())
         {
-            file_builder.CreateFile(result.ConstructedImage).Write(ms);
+            _fileBuilder.CreateFile(result.ConstructedImage).Write(ms);
             return ms.ToArray();
         }
+    }
+
+    public struct Context
+    {
+	    public string Author;
     }
 }

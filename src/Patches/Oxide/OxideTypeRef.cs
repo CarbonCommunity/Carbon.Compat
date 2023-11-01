@@ -1,8 +1,17 @@
 using Carbon.Base;
 using Carbon.Compat.Converters;
+using Carbon.Compat.Legacy.EventCompat;
 using Carbon.Compat.Lib;
 
 namespace Carbon.Compat.Patches.Oxide;
+
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
 
 public class OxideTypeRef : BaseOxidePatch
 {
@@ -14,62 +23,68 @@ public class OxideTypeRef : BaseOxidePatch
         "System.Void Oxide.Game.Rust.Libraries.Command::RemoveConsoleCommand(System.String, Oxide.Core.Plugins.Plugin)",
     };
 
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
     {
-        foreach (MemberReference mref in asm.GetImportedMemberReferences())
+        foreach (MemberReference memberReference in assembly.GetImportedMemberReferences())
         {
-            AssemblyReference aref = mref.DeclaringType.DefinitionAssembly();
-            if (mref.Signature is MethodSignature methodSig)
-            {
-                if (Helpers.IsOxideASM(aref))
-                {
-                    string fullName = mref.FullName;
-                    if (PluginToBaseHookable.Contains(mref.FullName))
-                    {
-                        for (int index = 0; index < methodSig.ParameterTypes.Count; index++)
-                        {
-                            TypeSignature typeSig = methodSig.ParameterTypes[index];
-                            if (typeSig.FullName == "Oxide.Core.Plugins.Plugin" &&
-                                Helpers.IsOxideASM(typeSig.DefinitionAssembly()))
-                            {
-                                methodSig.ParameterTypes[index] = importer.ImportTypeSignature(typeof(BaseHookable));
-                            }
-                        }
-                        continue;
-                    }
+            AssemblyReference aref = memberReference.DeclaringType.DefinitionAssembly();
 
-                    if (methodSig.GenericParameterCount == 1 && fullName == "!!0 Oxide.Core.Interface::Call<?>(System.String, System.Object[])")
-                    {
-                        mref.Parent = importer.ImportType(typeof(OxideCompat));
-                        mref.Name = nameof(OxideCompat.OxideCallHookGeneric);
-                    }
-                }
+            if (memberReference.Signature is MethodSignature methodSignature)
+            {
+	            if (!Helpers.IsOxideASM(aref))
+	            {
+		            continue;
+	            }
+
+	            string fullName = memberReference.FullName;
+
+	            if (PluginToBaseHookable.Contains(memberReference.FullName))
+	            {
+		            for (int index = 0; index < methodSignature.ParameterTypes.Count; index++)
+		            {
+			            TypeSignature typeSig = methodSignature.ParameterTypes[index];
+
+			            if (typeSig.FullName == "Oxide.Core.Plugins.Plugin" && Helpers.IsOxideASM(typeSig.DefinitionAssembly()))
+			            {
+				            methodSignature.ParameterTypes[index] = importer.ImportTypeSignature(typeof(BaseHookable));
+			            }
+		            }
+
+		            continue;
+	            }
+
+	            if (methodSignature.GenericParameterCount == 1 && fullName == "!!0 Oxide.Core.Interface::Call<?>(System.String, System.Object[])")
+	            {
+		            memberReference.Parent = importer.ImportType(typeof(OxideCompat));
+		            memberReference.Name = nameof(OxideCompat.OxideCallHookGeneric);
+	            }
             }
         }
 
-        foreach (TypeReference tw in asm.GetImportedTypeReferences())
+        foreach (TypeReference typeReference in assembly.GetImportedTypeReferences())
         {
-            ProcessTypeRef(tw, importer);
+            ProcessTypeRef(typeReference, importer);
         }
 
-        ProcessAttrList(asm.CustomAttributes);
-        foreach (TypeDefinition td in asm.GetAllTypes())
-        {
-            ProcessAttrList(td.CustomAttributes);
+        ProcessAttrList(assembly.CustomAttributes);
 
-            foreach (FieldDefinition field in td.Fields)
+        foreach (TypeDefinition type in assembly.GetAllTypes())
+        {
+            ProcessAttrList(type.CustomAttributes);
+
+            foreach (FieldDefinition field in type.Fields)
             {
                 ProcessAttrList(field.CustomAttributes);
             }
 
-            foreach (MethodDefinition method in td.Methods)
+            foreach (MethodDefinition method in type.Methods)
             {
                 ProcessAttrList(method.CustomAttributes);
             }
 
-            foreach (PropertyDefinition prop in td.Properties)
+            foreach (PropertyDefinition property in type.Properties)
             {
-                ProcessAttrList(prop.CustomAttributes);
+                ProcessAttrList(property.CustomAttributes);
             }
         }
 
@@ -78,6 +93,7 @@ public class OxideTypeRef : BaseOxidePatch
             for (int x = 0; x < list.Count; x++)
             {
                 CustomAttribute attr = list[x];
+
                 for (int y = 0; y < attr.Signature?.FixedArguments.Count; y++)
                 {
                     CustomAttributeArgument arg = attr.Signature.FixedArguments[y];
@@ -90,95 +106,111 @@ public class OxideTypeRef : BaseOxidePatch
         }
     }
 
-    public static void ProcessTypeRef(TypeReference tw, ReferenceImporter importer)
+    public static void ProcessTypeRef(TypeReference type, ReferenceImporter importer)
     {
-	    if (tw == null)
+	    if (type == null)
 	    {
 		    return;
 	    }
 
-        if (tw.Scope is TypeReference parent)
+        if (type.Scope is TypeReference parent)
         {
-            if (parent.FullName is "Oxide.Plugins.Timers" or "Oxide.Plugins.Timer" && tw.Name == "TimerInstance")
+            if (parent.FullName is "Oxide.Plugins.Timers" or "Oxide.Plugins.Timer" && type.Name == "TimerInstance")
             {
-                tw.Name = "Timer";
-                tw.Namespace = "Oxide.Plugins";
-                tw.Scope = CompatManager.Common.ImportWith(importer);
+                type.Name = "Timer";
+                type.Namespace = "Oxide.Plugins";
+                type.Scope = CompatManager.Common.ImportWith(importer);
                 return;
             }
         }
 
-        if (tw.Scope is AssemblyReference aref && Helpers.IsOxideASM(aref))
+        if (type.Scope is not AssemblyReference aref || !Helpers.IsOxideASM(aref))
         {
-            if (tw.FullName == "Oxide.Core.Event" || tw.FullName.StartsWith("Oxide.Core.Event`"))
-            {
-                tw.Scope = (IResolutionScope)importer.ImportType(typeof(OxideCompat));
-                return;
-            }
-
-            if (tw.Namespace.StartsWith("Newtonsoft.Json"))
-            {
-                tw.Scope = CompatManager.Newtonsoft.ImportWith(importer);
-                return;
-            }
-
-            if (tw.Namespace.StartsWith("ProtoBuf"))
-            {
-                if (tw.Namespace == "ProtoBuf" && tw.Name == "Serializer")
-                    tw.Scope = CompatManager.protobuf.ImportWith(importer);
-                else
-                    tw.Scope = CompatManager.protobufCore.ImportWith(importer);
-                return;
-            }
-
-            if (tw.Name == "VersionNumber")
-            {
-                goto sdk;
-            }
-
-            if (tw.Namespace == "Oxide.Plugins" && tw.Name.EndsWith("Attribute"))
-            {
-                tw.Namespace = string.Empty;
-                goto sdk;
-            }
-
-            if (tw.FullName == "Oxide.Plugins.Hash`2")
-            {
-                tw.Namespace = string.Empty;
-                goto common;
-            }
-
-            if (tw.FullName is "Oxide.Core.Libraries.Timer")
-            {
-                tw.Name = "Timers";
-                tw.Namespace = "Oxide.Plugins";
-                goto common;
-            }
-
-            if (tw.FullName == "Oxide.Core.Plugins.HookMethodAttribute")
-            {
-                tw.Namespace = string.Empty;
-                goto sdk;
-            }
-
-            if (tw.FullName is "Oxide.Plugins.CSharpPlugin" or "Oxide.Core.Plugins.CSPlugin")
-            {
-                tw.Name = "RustPlugin";
-                tw.Namespace = "Oxide.Plugins";
-                goto common;
-            }
-
-            if (tw.FullName == "Oxide.Core.Plugins.PluginManager")
-            {
-                tw.Namespace = string.Empty;
-            }
-
-            common:
-            tw.Scope = CompatManager.Common.ImportWith(importer);
-            return;
-
-            sdk:
-            tw.Scope = CompatManager.SDK.ImportWith(importer);
+	        return;
         }
+
+        if (type.FullName == "Oxide.Core.Event" || type.FullName.StartsWith("Oxide.Core.Event`"))
+        {
+	        type.Scope = (IResolutionScope)importer.ImportType(typeof(OxideEvents));
+	        return;
+        }
+
+        if (type.FullName == "Oxide.Core.Plugins.PluginEvent")
+        {
+	        type.Namespace = string.Empty;
+        }
+
+        if (type.Namespace.StartsWith("Newtonsoft.Json"))
+        {
+	        type.Scope = CompatManager.Newtonsoft.ImportWith(importer);
+	        return;
+        }
+
+        if (type.Namespace.StartsWith("ProtoBuf"))
+        {
+	        if (type.Namespace == "ProtoBuf" && type.Name == "Serializer")
+		        type.Scope = CompatManager.protobuf.ImportWith(importer);
+	        else
+		        type.Scope = CompatManager.protobufCore.ImportWith(importer);
+	        return;
+        }
+
+        if (type.Namespace.StartsWith("WebSocketSharp"))
+        {
+	        if (type.Namespace == "WebSocketSharp.Net" && type.Name == "SslConfiguration")
+		        type.Name = "ClientSslConfiguration";
+
+	        type.Scope = CompatManager.wsSharp.ImportWith(importer);
+	        return;
+        }
+
+        if (type.Name == "VersionNumber")
+        {
+	        goto sdk;
+        }
+
+        if (type.Namespace == "Oxide.Plugins" && type.Name.EndsWith("Attribute"))
+        {
+	        type.Namespace = string.Empty;
+	        goto sdk;
+        }
+
+        if (type.FullName == "Oxide.Plugins.Hash`2")
+        {
+	        type.Namespace = string.Empty;
+	        goto common;
+        }
+
+        if (type.FullName is "Oxide.Core.Libraries.Timer")
+        {
+	        type.Name = "Timers";
+	        type.Namespace = "Oxide.Plugins";
+	        goto common;
+        }
+
+        if (type.FullName == "Oxide.Core.Plugins.HookMethodAttribute")
+        {
+	        type.Namespace = string.Empty;
+	        goto sdk;
+        }
+
+        if (type.FullName is "Oxide.Plugins.CSharpPlugin" or "Oxide.Core.Plugins.CSPlugin")
+        {
+	        type.Name = "RustPlugin";
+	        type.Namespace = "Oxide.Plugins";
+	        goto common;
+        }
+
+        if (type.FullName == "Oxide.Core.Plugins.PluginManager")
+        {
+	        type.Namespace = string.Empty;
+        }
+
+        common:
+        type.Scope = CompatManager.Common.ImportWith(importer);
+        return;
+
+        sdk:
+        type.Scope = CompatManager.SDK.ImportWith(importer);
     }
 }

@@ -1,6 +1,6 @@
 using Carbon.Compat.Converters;
 
-namespace Carbon.Compat.Patches.Oxide;
+namespace Carbon.Compat.Patches;
 
 /*
  *
@@ -10,9 +10,7 @@ namespace Carbon.Compat.Patches.Oxide;
  *
  */
 
-public abstract class BaseOxidePatch : IAssemblyPatch
+public interface IAssemblyPatch
 {
-    public const string OxideStr = "Oxide";
-
     public abstract void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context);
 }

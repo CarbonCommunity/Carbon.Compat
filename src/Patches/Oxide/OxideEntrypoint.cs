@@ -6,22 +6,32 @@ using MethodAttributes = AsmResolver.PE.DotNet.Metadata.Tables.Rows.MethodAttrib
 
 namespace Carbon.Compat.Patches.Oxide;
 
+/*
+ *
+ * Copyright (c) 2023 Carbon Community
+ * Copyright (c) 2023 Patrette
+ * All rights reserved.
+ *
+ */
+
 public class OxideEntrypoint : BaseOxidePatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.GenInfo info)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
     {
         Guid guid = Guid.NewGuid();
-        List<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common").ToList();
-        if (entryPoints.Count == 0)
+        IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
+
+        if (!entryPoints.Any())
         {
-            info.noEntryPoint = true;
             return;
         }
 
-        info.author ??= entryPoints[0].Properties.FirstOrDefault(x => x.Name == "Author" && x.GetMethod is { IsVirtual: true })?.GetMethod?.CilMethodBody?.Instructions.FirstOrDefault(x => x.OpCode == CilOpCodes.Ldstr)?.Operand as string;
+        context.Author ??= entryPoints.FirstOrDefault().Properties.FirstOrDefault(x => x.Name == "Author" && x.GetMethod is { IsVirtual: true })?.GetMethod?.CilMethodBody?.Instructions.FirstOrDefault(x => x.OpCode == CilOpCodes.Ldstr)?.Operand as string;
 
-        CodeGenHelpers.GenerateEntrypoint(asm, importer, OxideStr, guid, out MethodDefinition load, out MethodDefinition unload, out TypeDefinition entryDef);
-        entryDef.Interfaces.Add(new InterfaceImplementation(importer.ImportType(typeof(ICarbonExtension))));
+        CodeGenHelpers.GenerateEntrypoint(asm, importer, OxideStr, guid, out MethodDefinition load, out MethodDefinition unload, out TypeDefinition entryPoint);
+
+        entryPoint.Interfaces.Add(new InterfaceImplementation(importer.ImportType(typeof(ICarbonExtension))));
+
         load.CilMethodBody = new CilMethodBody(load);
         unload.CilMethodBody = new CilMethodBody(unload);
         unload.CilMethodBody.Instructions.Add(CilOpCodes.Ret);
@@ -31,7 +41,6 @@ public class OxideEntrypoint : BaseOxidePatch
         serverInit.CilMethodBody = new CilMethodBody(serverInit);
 
         FieldDefinition loadedField = new FieldDefinition("loaded", FieldAttributes.PrivateScope, new FieldSignature(asm.CorLibTypeFactory.Boolean));
-
         int postHookIndex = 0;
 
         CodeGenHelpers.GenerateCarbonEventCall(load.CilMethodBody, importer, ref postHookIndex, CarbonEvent.HookValidatorRefreshed, serverInit, new CilInstruction(CilOpCodes.Ldarg_0));
@@ -39,7 +48,7 @@ public class OxideEntrypoint : BaseOxidePatch
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
 
         CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);
-        serverInit.CilMethodBody.Instructions.AddRange(new CilInstruction[]
+        serverInit.CilMethodBody.Instructions.AddRange(new[]
         {
             // load check
             new CilInstruction(CilOpCodes.Ldarg_0),
@@ -48,23 +57,47 @@ public class OxideEntrypoint : BaseOxidePatch
             new CilInstruction(CilOpCodes.Ldarg_0),
             new CilInstruction(CilOpCodes.Ldc_I4_1),
             new CilInstruction(CilOpCodes.Stfld, loadedField)
-
         });
 
         foreach (TypeDefinition entry in entryPoints)
         {
             MethodDefinition extLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "Load" && x.IsVirtual);
+            MethodDefinition extOnModLoadMethod = entry.Methods.FirstOrDefault(x => x.Name == "OnModLoad" && x.IsVirtual && x.Parameters.Count == 0);
             MethodDefinition extCtor = entry.Methods.FirstOrDefault(x => x.Name == ".ctor" && x.Parameters.Count == 1);
-            if (extLoadMethod == null) continue;
-            serverInit.CilMethodBody.Instructions.AddRange(new CilInstruction[]
+
+            if (extLoadMethod == null && extOnModLoadMethod == null)
+            {
+	            continue;
+            }
+
+            CilLocalVariable objVar = new CilLocalVariable(entry.ToTypeSignature());
+
+            serverInit.CilMethodBody.LocalVariables.Add(objVar);
+
+            short idx = (short)(serverInit.CilMethodBody.LocalVariables.Count-1);
+
+            serverInit.CilMethodBody.Instructions.AddRange(new[]
             {
                 new CilInstruction(CilOpCodes.Ldnull),
                 new CilInstruction(CilOpCodes.Newobj, extCtor),
-                new CilInstruction(CilOpCodes.Callvirt, extLoadMethod)
+                new CilInstruction(CilOpCodes.Stloc, idx)
             });
+
+            if (extLoadMethod != null)
+            {
+	            serverInit.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ldloc, idx));
+	            serverInit.CilMethodBody.Instructions.Add(CilOpCodes.Callvirt, extLoadMethod);
+            }
+
+            if (extOnModLoadMethod != null)
+            {
+	            serverInit.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ldloc, idx));
+	            serverInit.CilMethodBody.Instructions.Add(CilOpCodes.Callvirt, extOnModLoadMethod);
+            }
         }
+
         serverInit.CilMethodBody.Instructions.Add(postHookRet);
-        entryDef.Fields.Add(loadedField);
-        entryDef.Methods.Add(serverInit);
+        entryPoint.Fields.Add(loadedField);
+        entryPoint.Methods.Add(serverInit);
     }
 }
