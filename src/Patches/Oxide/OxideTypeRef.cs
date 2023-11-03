@@ -15,12 +15,13 @@ namespace Carbon.Compat.Patches.Oxide;
 
 public class OxideTypeRef : BaseOxidePatch
 {
-    public static List<string> PluginToBaseHookable = new List<string>()
-    {
+    public static List<string> PluginToBaseHookable = new()
+	{
         "System.Void Oxide.Core.Libraries.Permission::RegisterPermission(System.String, Oxide.Core.Plugins.Plugin)",
         "System.Void Oxide.Core.Libraries.Lang::RegisterMessages(System.Collections.Generic.Dictionary`2<System.String, System.String>, Oxide.Core.Plugins.Plugin, System.String)",
         "System.String Oxide.Core.Libraries.Lang::GetMessage(System.String, Oxide.Core.Plugins.Plugin, System.String)",
         "System.Void Oxide.Game.Rust.Libraries.Command::RemoveConsoleCommand(System.String, Oxide.Core.Plugins.Plugin)",
+        "System.Collections.Generic.Dictionary`2<System.String, System.String> Oxide.Core.Libraries.Lang::GetMessages(System.String, Oxide.Core.Plugins.Plugin)"
     };
 
     public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
