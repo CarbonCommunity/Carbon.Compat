@@ -69,7 +69,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 #if DEBUG
 	    string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
 	    Directory.CreateDirectory(dir);
-	    OsEx.File.Create(Path.Combine(dir, md.Name + ".dll"), buffer);
+	    OsEx.File.Create(Path.Combine(dir, md.Name), buffer);
 #endif
 	    return true;
     }
