@@ -48,6 +48,8 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    Stopwatch stopwatch = Pool.Get<Stopwatch>();
 	    stopwatch.Start();
 
+	    md.DebugData.Clear();
+
 	    try
 	    {
 		    buffer = converter.Convert(md); //, out BaseConverter.GenInfo info);
@@ -67,7 +69,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 #if DEBUG
 	    string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
 	    Directory.CreateDirectory(dir);
-	    OsEx.File.Create(Path.Combine(dir, md.Name + ".dll"), buffer);
+	    OsEx.File.Create(Path.Combine(dir, md.Name), buffer);
 #endif
 	    return true;
     }
