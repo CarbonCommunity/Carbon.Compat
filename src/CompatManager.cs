@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using API.Abstracts;
 using API.Assembly;
+using API.Events;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
@@ -89,5 +90,18 @@ public class CompatManager : CarbonBehaviour, ICompatManager
     bool ICompatManager.ConvertHarmonyMod(ref byte[] data)
     {
 	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data);
+    }
+
+    public void Awake()
+    {
+	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchStart, args =>
+	    {
+		    HookProcessor.HookClear();
+	    });
+
+	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchEnd, args =>
+	    {
+		    HookProcessor.HookReload();
+	    });
     }
 }
