@@ -10,8 +10,8 @@ namespace Carbon.Compat.Lib;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
