@@ -24,7 +24,7 @@ public class OxideTypeRef : BaseOxidePatch
         "System.Collections.Generic.Dictionary`2<System.String, System.String> Oxide.Core.Libraries.Lang::GetMessages(System.String, Oxide.Core.Plugins.Plugin)"
     };
 
-    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (MemberReference memberReference in assembly.GetImportedMemberReferences())
         {

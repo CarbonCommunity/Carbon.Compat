@@ -17,8 +17,9 @@ namespace Carbon.Compat.Patches.Harmony;
 
 public class HarmonyEntrypoint : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (context.noEntrypoint) return;
         Guid guid = Guid.NewGuid();
         IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "Carbon.Compat.Lib.HarmonyCompat+IHarmonyModHooks"));
 
@@ -57,14 +58,10 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 
         if (entryPoints.Any())
         {
-            List<KeyValuePair<TypeDefinition, List<MethodDefinition>>> input = entryPoints.Select(entry => new KeyValuePair<TypeDefinition, List<MethodDefinition>>(entry, new List<MethodDefinition>
-	            {
-		            entry.Methods.First(x => x.Name == "OnLoaded")
-	            }))
-	            .ToList();
+	        IMethodDescriptor loadMethod = importer.ImportMethod(typeof(HarmonyCompat.IHarmonyModHooks).GetMethod("OnLoaded"));
 
             int multiCallIndex = postHookLoad.CilMethodBody.Instructions.Count;
-            CodeGenHelpers.DoMultiMethodCall(postHookLoad.CilMethodBody, ref multiCallIndex, null, input);
+            CodeGenHelpers.DoMultiMethodCall(postHookLoad.CilMethodBody, ref multiCallIndex, null, entryPoints, loadMethod);
         }
         postHookLoad.CilMethodBody.Instructions.Add(postHookRet);
         entryDef.Methods.Add(postHookLoad);

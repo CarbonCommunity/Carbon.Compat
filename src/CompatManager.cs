@@ -24,36 +24,38 @@ namespace Carbon.Compat;
 
 public class CompatManager : CarbonBehaviour, ICompatManager
 {
-	private BaseConverter oxideConverter = new OxideConverter();
+	private readonly BaseConverter oxideConverter = new OxideConverter();
 
-	private BaseConverter harmonyConverter = new HarmonyConverter();
+	private readonly BaseConverter harmonyConverter = new HarmonyConverter();
 
-	private ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
+	private static readonly ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
 
-	private static Version zeroVersion = new Version(0,0,0,0);
+	private static readonly Version zeroVersion = new Version(0,0,0,0);
 
-    public static AssemblyReference SDK = new AssemblyReference("Carbon.SDK", zeroVersion);
+    public static readonly AssemblyReference SDK = new AssemblyReference("Carbon.SDK", zeroVersion);
 
-    public static AssemblyReference Common = new AssemblyReference("Carbon.Common", zeroVersion);
+    public static readonly AssemblyReference Common = new AssemblyReference("Carbon.Common", zeroVersion);
 
-    public static AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", zeroVersion);
+    public static readonly AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", zeroVersion);
 
-    public static AssemblyReference protobuf = new AssemblyReference("protobuf-net", zeroVersion);
+    public static readonly AssemblyReference protobuf = new AssemblyReference("protobuf-net", zeroVersion);
 
-    public static AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", zeroVersion);
+    public static readonly AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", zeroVersion);
 
-    public static AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
+    public static readonly AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
 
-    private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer)
+    private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer, bool noEntrypoint = false)
     {
 	    Stopwatch stopwatch = Pool.Get<Stopwatch>();
-	    stopwatch.Start();
+	    stopwatch.Restart();
 
 	    md.DebugData.Clear();
 
 	    try
 	    {
-		    buffer = converter.Convert(md); //, out BaseConverter.GenInfo info);
+		    buffer = converter.Convert(md, new BaseConverter.Context
+			    {noEntrypoint = noEntrypoint}
+		    ); //, out BaseConverter.GenInfo info);
 	    }
 	    catch (Exception ex)
 	    {
@@ -87,9 +89,9 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    return ConvertAssembly(asm, oxideConverter, ref data) ? ConversionResult.Success : ConversionResult.Fail;
     }
 
-    bool ICompatManager.ConvertHarmonyMod(ref byte[] data)
+    bool ICompatManager.ConvertHarmonyMod(ref byte[] data, bool noEntrypoint)
     {
-	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data);
+	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data, noEntrypoint);
     }
 
     public void Awake()

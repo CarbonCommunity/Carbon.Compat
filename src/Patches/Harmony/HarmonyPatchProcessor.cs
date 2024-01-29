@@ -16,7 +16,7 @@ namespace Carbon.Compat.Patches.Harmony;
 
 public class HarmonyPatchProcessor : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (TypeDefinition type in asm.GetAllTypes())
         {

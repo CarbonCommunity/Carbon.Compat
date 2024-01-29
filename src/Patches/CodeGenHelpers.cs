@@ -74,7 +74,7 @@ public static class CodeGenHelpers
 		index += IL.Count;
 	}
 
-	public static void DoMultiMethodCall(CilMethodBody body, ref int index, List<MethodDefinition> staticMethods, List<KeyValuePair<TypeDefinition, List<MethodDefinition>>> internalInstances)
+	public static void DoMultiMethodCall(CilMethodBody body, ref int index, List<IMethodDescriptor> staticMethods, IEnumerable<TypeDefinition> instanceTypes, IMethodDescriptor instanceMethod)
 	{
 		List<CilInstruction> IL = new List<CilInstruction>();
 
@@ -98,40 +98,25 @@ public static class CodeGenHelpers
 			}
 		}
 
-		if (internalInstances != null)
+		if (instanceTypes != null)
 		{
-			foreach (KeyValuePair<TypeDefinition, List<MethodDefinition>> instance in internalInstances)
+			foreach (TypeDefinition type in instanceTypes)
 			{
-				TypeDefinition type = instance.Key;
-				List<MethodDefinition> calls = instance.Value;
-
 				IL.Add(new CilInstruction(CilOpCodes.Newobj, type.Methods.First(x => x.Parameters.Count == 0 && x.Name == ".ctor")));
 
-				if (calls.Count > 1)
+				foreach (TypeSignature parameter in instanceMethod.Signature.ParameterTypes)
 				{
-					for (int i = 0; i < calls.Count - 1; i++) // probably a bad idea but who cares
+					if (!parameter.IsValueType)
 					{
-						IL.Add(new CilInstruction(CilOpCodes.Dup));
+						IL.Add(new CilInstruction(CilOpCodes.Ldnull));
 					}
 				}
 
-				foreach (MethodDefinition method in calls)
+				IL.Add(new CilInstruction(CilOpCodes.Callvirt, instanceMethod));
+
+				if (instanceMethod.Signature.ReturnsValue)
 				{
-					foreach (Parameter parameter in method.Parameters)
-					{
-						if (!parameter.ParameterType.IsValueType)
-						{
-							IL.Add(new CilInstruction(CilOpCodes.Ldnull));
-							continue;
-						}
-					}
-
-					IL.Add(new CilInstruction(CilOpCodes.Callvirt, method));
-
-					if (method.Signature.ReturnsValue)
-					{
-						IL.Add(new CilInstruction(CilOpCodes.Pop));
-					}
+					IL.Add(new CilInstruction(CilOpCodes.Pop));
 				}
 			}
 		}

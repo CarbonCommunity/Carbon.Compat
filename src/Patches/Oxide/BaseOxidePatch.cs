@@ -14,5 +14,5 @@ public abstract class BaseOxidePatch : IAssemblyPatch
 {
     public const string OxideStr = "Oxide";
 
-    public abstract void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context);
+    public abstract void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context);
 }

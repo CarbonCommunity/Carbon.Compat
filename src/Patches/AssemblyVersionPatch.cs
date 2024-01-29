@@ -13,7 +13,7 @@ namespace Carbon.Compat.Patches;
 
 public class AssemblyVersionPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         Assembly[] loaded = AppDomain.CurrentDomain.GetAssemblies();
 

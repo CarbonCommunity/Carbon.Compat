@@ -14,7 +14,7 @@ namespace Carbon.Compat.Patches.Harmony;
 
 public class HarmonyILSwitch : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         IMethodDescriptor PatchProcessorCompatRef = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat), nameof(HarmonyCompat.PatchProcessorCompat)));
 
@@ -81,6 +81,22 @@ public class HarmonyILSwitch : BaseHarmonyPatch
 	                    CIL.OpCode = CilOpCodes.Call;
 
                     }
+
+					// not tested
+                    /*if (CIL.OpCode == CilOpCodes.Call && i > 0 && CIL.Operand is MemberReference eref &&
+                        eref.DeclaringType.DefinitionAssembly().IsCorLib &&
+                        eref.DeclaringType.Name == "RuntimeFeature" &&
+                        eref.Name == "IsSupported")
+                    {
+	                    CilInstruction prev = body.Instructions[i - 1];
+	                    if (prev.OpCode == CilOpCodes.Ldstr && prev.Operand is string op && op.Equals("carbon", StringComparison.OrdinalIgnoreCase))
+	                    {
+		                    CIL.OpCode = CilOpCodes.Ldc_I4_1;
+		                    CIL.Operand = null;
+		                    body.Instructions.RemoveAt(i-1);
+		                    i++;
+	                    }
+                    }*/
                 }
             }
         }
