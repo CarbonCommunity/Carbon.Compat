@@ -8,16 +8,17 @@ namespace Carbon.Compat.Patches.Oxide;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
 
 public class OxideEntrypoint : BaseOxidePatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (context.noEntrypoint) return;
         Guid guid = Guid.NewGuid();
         IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
 

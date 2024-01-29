@@ -5,15 +5,15 @@ namespace Carbon.Compat.Patches;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
 
 public class AssemblyVersionPatch : IAssemblyPatch
 {
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         Assembly[] loaded = AppDomain.CurrentDomain.GetAssemblies();
 
