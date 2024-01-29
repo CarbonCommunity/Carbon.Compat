@@ -7,14 +7,44 @@ namespace Carbon.Compat;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
 
 internal static class HookProcessor
 {
+	public static void HookClear()
+	{
+		Logger.Debug("Unprocessing dynamic hooks", 2);
+
+		foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
+		{
+			if (hook.TargetMethods.Count == 0)
+			{
+				return;
+			}
+
+			MethodBase cache = hook.TargetMethods[0];
+			string asmName = cache.DeclaringType.Assembly.GetName().Name;
+			string typeName = cache.DeclaringType.FullName;
+			string methodName = cache.Name;
+
+			HarmonyPatchProcessor.PatchInfoEntry patchInfo = HarmonyPatchProcessor.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
+
+			if (patchInfo == null)
+			{
+				continue;
+			}
+
+			if ((hook.Options & HookFlags.Patch) != HookFlags.Patch)
+			{
+				Community.Runtime.HookManager.Unsubscribe(hook.Identifier, "CCL.Static");
+			}
+		}
+	}
+
     public static void HookReload()
     {
         Logger.Debug("Processing dynamic hooks", 2);
@@ -52,15 +82,5 @@ internal static class HookProcessor
         }
 
         Community.Runtime.HookManager.ForceUpdateHooks();
-    }
-
-    internal static void ApplyPatch()
-    {
-        Community.Runtime.Events.Subscribe(CarbonEvent.HookValidatorRefreshed, args =>
-        {
-            HookReload();
-        });
-
-        Logger.Debug("Patched HookExCTOR", 2);
     }
 }
