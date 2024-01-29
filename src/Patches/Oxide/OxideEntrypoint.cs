@@ -16,8 +16,9 @@ namespace Carbon.Compat.Patches.Oxide;
 
 public class OxideEntrypoint : BaseOxidePatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (context.noEntrypoint) return;
         Guid guid = Guid.NewGuid();
         IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x=>x.BaseType?.FullName == "Oxide.Core.Extensions.Extension" && x.BaseType.DefinitionAssembly().Name == "Carbon.Common");
 

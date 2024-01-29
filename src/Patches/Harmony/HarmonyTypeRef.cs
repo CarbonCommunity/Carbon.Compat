@@ -13,7 +13,7 @@ namespace Carbon.Compat.Patches.Harmony;
 
 public class HarmonyTypeRef : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (TypeReference type in assembly.GetImportedTypeReferences())
         {
@@ -25,7 +25,7 @@ public class HarmonyTypeRef : BaseHarmonyPatch
 	            {
 		            type.Namespace = Harmony2NS;
 	            }
-	            
+
                 if (type.Name == "HarmonyInstance")
                 {
                     type.Name = "Harmony";

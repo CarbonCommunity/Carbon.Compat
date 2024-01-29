@@ -20,47 +20,47 @@ namespace Carbon.Compat.Lib;
 public static class HarmonyCompat
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal static class HarmonyLoader
+	public static class HarmonyLoader
 	{
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		internal class HarmonyMod
+		public class HarmonyMod
 		{
-			internal string Name { get; set; }
+			public string Name { get; set; }
 
-			internal string HarmonyId { get; set; }
+			public string HarmonyId { get; set; }
 
 			public Harmony Harmony { get; set; }
 
-			internal Assembly Assembly { get; set; }
+			public Assembly Assembly { get; set; }
 
-			internal Type[] AllTypes { get; set; }
+			public Type[] AllTypes { get; set; }
 
-			internal List<IHarmonyModHooks> Hooks { get; } = new();
+			public List<IHarmonyModHooks> Hooks { get; } = new();
 		}
 
-		internal static List<HarmonyMod> loadedMods = new();
+		public static List<HarmonyMod> loadedMods = new();
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal struct HarmonyModInfo
+	public struct HarmonyModInfo
 	{
-		internal string Name;
-		internal string Version;
+		public string Name;
+		public string Version;
 	}
 
-	internal class OnHarmonyModLoadedArgs
+	public class OnHarmonyModLoadedArgs
 	{
 	}
 
-	internal class OnHarmonyModUnloadedArgs
+	public class OnHarmonyModUnloadedArgs
 	{
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal interface IHarmonyModHooks
+	public interface IHarmonyModHooks
 	{
-		void OnLoaded(OnHarmonyModLoadedArgs args);
-		void OnUnloaded(OnHarmonyModUnloadedArgs args);
+		public void OnLoaded(OnHarmonyModLoadedArgs args);
+		public void OnUnloaded(OnHarmonyModUnloadedArgs args);
 	}
 
 	[MethodImpl(MethodImplOptions.NoInlining)]

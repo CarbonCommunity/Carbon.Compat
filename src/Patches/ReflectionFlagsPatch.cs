@@ -21,7 +21,7 @@ public class ReflectionFlagsPatch : IAssemblyPatch
         "GetMember"
     };
 
-    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (TypeDefinition type in assembly.GetAllTypes())
         {

@@ -22,14 +22,13 @@ public abstract class BaseConverter
     internal static ManagedPEImageBuilder _imageBuilder = new ManagedPEImageBuilder();
     internal static ManagedPEFileBuilder _fileBuilder = new ManagedPEFileBuilder();
 
-    public byte[] Convert(ModuleDefinition asm)
+    public byte[] Convert(ModuleDefinition asm, Context ctx = default)
     {
         ReferenceImporter importer = new ReferenceImporter(asm);
-        Context info = default;
 
         foreach (IAssemblyPatch patch in Patches)
         {
-            patch.Apply(asm, importer, info);
+            patch.Apply(asm, importer, ref ctx);
         }
 
         PEImageBuildResult result = _imageBuilder.CreateImage(asm);
@@ -49,5 +48,6 @@ public abstract class BaseConverter
     public struct Context
     {
 	    public string Author;
+	    public bool noEntrypoint;
     }
 }

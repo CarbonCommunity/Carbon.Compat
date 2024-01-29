@@ -13,7 +13,7 @@ namespace Carbon.Compat.Patches.Oxide;
 
 public class OxidePluginAttribute : BaseOxidePatch
 {
-    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition assembly, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         string author = context.Author ?? "CCL";
 
@@ -27,7 +27,7 @@ public class OxidePluginAttribute : BaseOxidePatch
                     Logger.Warn($"Plugin \"{type.Name}\" has an invalid name, renaming to {newName}");
                     type.Name = newName;
                 }
-                
+
                 CustomAttribute infoAttr = type.CustomAttributes.FirstOrDefault(x => x.Constructor.DeclaringType.FullName == "InfoAttribute" && x.Constructor.DeclaringType.DefinitionAssembly().Name == "Carbon.Common");
 
                 if (infoAttr != null)
