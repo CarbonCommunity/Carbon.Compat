@@ -8,15 +8,15 @@ namespace Carbon.Compat.Patches.Harmony;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
 
 public class HarmonyPatchProcessor : BaseHarmonyPatch
 {
-    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, BaseConverter.Context context)
+    public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
         foreach (TypeDefinition type in asm.GetAllTypes())
         {
