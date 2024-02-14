@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using API.Abstracts;
 using API.Assembly;
+using API.Events;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
@@ -15,42 +16,46 @@ namespace Carbon.Compat;
 
 /*
  *
- * Copyright (c) 2023 Carbon Community
- * Copyright (c) 2023 Patrette
+ * Copyright (c) 2022-2024 Carbon Community
+ * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
  */
 
 public class CompatManager : CarbonBehaviour, ICompatManager
 {
-	private BaseConverter oxideConverter = new OxideConverter();
+	private readonly BaseConverter oxideConverter = new OxideConverter();
 
-	private BaseConverter harmonyConverter = new HarmonyConverter();
+	private readonly BaseConverter harmonyConverter = new HarmonyConverter();
 
-	private ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
+	private static readonly ModuleReaderParameters readerArgs = new ModuleReaderParameters(EmptyErrorListener.Instance);
 
-	private static Version zeroVersion = new Version(0,0,0,0);
+	private static readonly Version zeroVersion = new Version(0,0,0,0);
 
-    public static AssemblyReference SDK = new AssemblyReference("Carbon.SDK", zeroVersion);
+    public static readonly AssemblyReference SDK = new AssemblyReference("Carbon.SDK", zeroVersion);
 
-    public static AssemblyReference Common = new AssemblyReference("Carbon.Common", zeroVersion);
+    public static readonly AssemblyReference Common = new AssemblyReference("Carbon.Common", zeroVersion);
 
-    public static AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", zeroVersion);
+    public static readonly AssemblyReference Newtonsoft = new AssemblyReference("Newtonsoft.Json", zeroVersion);
 
-    public static AssemblyReference protobuf = new AssemblyReference("protobuf-net", zeroVersion);
+    public static readonly AssemblyReference protobuf = new AssemblyReference("protobuf-net", zeroVersion);
 
-    public static AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", zeroVersion);
+    public static readonly AssemblyReference protobufCore = new AssemblyReference("protobuf-net.Core", zeroVersion);
 
-    public static AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
+    public static readonly AssemblyReference wsSharp = new AssemblyReference("websocket-sharp", zeroVersion);
 
-    private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer)
+    private bool ConvertAssembly(ModuleDefinition md, BaseConverter converter, ref byte[] buffer, bool noEntrypoint = false)
     {
 	    Stopwatch stopwatch = Pool.Get<Stopwatch>();
-	    stopwatch.Start();
+	    stopwatch.Restart();
+
+	    md.DebugData.Clear();
 
 	    try
 	    {
-		    buffer = converter.Convert(md); //, out BaseConverter.GenInfo info);
+		    buffer = converter.Convert(md, new BaseConverter.Context
+			    {noEntrypoint = noEntrypoint}
+		    ); //, out BaseConverter.GenInfo info);
 	    }
 	    catch (Exception ex)
 	    {
@@ -67,7 +72,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 #if DEBUG
 	    string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
 	    Directory.CreateDirectory(dir);
-	    OsEx.File.Create(Path.Combine(dir, md.Name + ".dll"), buffer);
+	    OsEx.File.Create(Path.Combine(dir, md.Name), buffer);
 #endif
 	    return true;
     }
@@ -84,8 +89,21 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    return ConvertAssembly(asm, oxideConverter, ref data) ? ConversionResult.Success : ConversionResult.Fail;
     }
 
-    bool ICompatManager.ConvertHarmonyMod(ref byte[] data)
+    bool ICompatManager.ConvertHarmonyMod(ref byte[] data, bool noEntrypoint)
     {
-	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data);
+	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data, noEntrypoint);
+    }
+
+    public void Awake()
+    {
+	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchStart, args =>
+	    {
+		    HookProcessor.HookClear();
+	    });
+
+	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchEnd, args =>
+	    {
+		    HookProcessor.HookReload();
+	    });
     }
 }
