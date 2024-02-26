@@ -94,7 +94,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    return ConvertAssembly(ModuleDefinition.FromBytes(data, readerArgs), harmonyConverter, ref data, noEntrypoint);
     }
 
-    public void Awake()
+    public void Init()
     {
 	    Community.Runtime.Events.Subscribe(CarbonEvent.HookFetchStart, args =>
 	    {
