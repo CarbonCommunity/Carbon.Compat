@@ -7,7 +7,7 @@ namespace Carbon.Compat;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community 
+ * Copyright (c) 2022-2024 Carbon Community
  * Copyright (c) 2023-2024 Patrette
  * All rights reserved.
  *
@@ -54,7 +54,8 @@ internal static class HookProcessor
 #if DEBUG
 	        Logger.Debug($"Found dyn hooky: {hook.HookFullName}", 2);
 #endif
-	        if (hook.TargetMethods.Count == 0)
+
+	        if (hook == null || hook.TargetMethods == null || hook.TargetMethods.Count == 0)
 	        {
 		        return;
 	        }
