@@ -37,13 +37,8 @@ public static partial class OxideCompat
 
         if (!modPackages.TryGetValue(asm, out ModLoader.ModPackage package))
         {
-            package = new ModLoader.ModPackage
-            {
-                Name = $"{name} - {author} (Oxide Extension)"
-            };
-
-            ModLoader.LoadedPackages.Add(package);
-            modPackages[asm] = package;
+	        ModLoader.RegisterPackage(package = modPackages[asm] =
+		        ModLoader.ModPackage.Get($"{name} - {author} (Oxide Extension)", false));
         }
         foreach (Type type in loader.CorePlugins)
         {
