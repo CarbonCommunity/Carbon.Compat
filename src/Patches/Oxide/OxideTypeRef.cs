@@ -182,7 +182,7 @@ public class OxideTypeRef : BaseOxidePatch
 	        goto common;
         }
 
-        if (type.FullName is "Oxide.Core.Libraries.Timer")
+        if (type.FullName is "Oxide.Core.Libraries.Timer" or "Oxide.Plugins.PluginTimers")
         {
 	        type.Name = "Timers";
 	        type.Namespace = "Oxide.Plugins";
