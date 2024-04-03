@@ -2,6 +2,7 @@ using Carbon.Base;
 using Carbon.Compat.Converters;
 using Carbon.Compat.Legacy.EventCompat;
 using Carbon.Compat.Lib;
+using HarmonyLib;
 
 namespace Carbon.Compat.Patches.Oxide;
 
@@ -19,7 +20,7 @@ public class OxideTypeRef : BaseOxidePatch
 	{
         "System.Void Oxide.Core.Libraries.Permission::RegisterPermission(System.String, Oxide.Core.Plugins.Plugin)",
         "System.Void Oxide.Core.Libraries.Lang::RegisterMessages(System.Collections.Generic.Dictionary`2<System.String, System.String>, Oxide.Core.Plugins.Plugin, System.String)",
-        "System.String Oxide.Core.Libraries.Lang::GetMessage(System.String, Oxide.Core.Plugins.Plugin, System.String)",
+        //"System.String Oxide.Core.Libraries.Lang::GetMessage(System.String, Oxide.Core.Plugins.Plugin, System.String)",
         "System.Void Oxide.Game.Rust.Libraries.Command::RemoveConsoleCommand(System.String, Oxide.Core.Plugins.Plugin)",
         "System.Collections.Generic.Dictionary`2<System.String, System.String> Oxide.Core.Libraries.Lang::GetMessages(System.String, Oxide.Core.Plugins.Plugin)"
     };
@@ -58,6 +59,16 @@ public class OxideTypeRef : BaseOxidePatch
 	            {
 		            memberReference.Parent = importer.ImportType(typeof(OxideCompat));
 		            memberReference.Name = nameof(OxideCompat.OxideCallHookGeneric);
+		            continue;
+	            }
+
+	            if (fullName ==
+	                "System.String Oxide.Core.Libraries.Lang::GetMessage(System.String, Oxide.Core.Plugins.Plugin, System.String)")
+	            {
+		            memberReference.Signature = importer.ImportMethod(AccessTools.Method(typeof(OxideCompat), "GetMessage1")).Signature;
+		            memberReference.Parent = importer.ImportType(typeof(OxideCompat));
+		            memberReference.Name = "GetMessage1";
+		            continue;
 	            }
             }
         }
