@@ -196,7 +196,7 @@ public class OxideILSwitch : BaseOxidePatch
                         continue;
                     }
 
-                    // PluginManagerEvent fix
+					// PluginManagerEvent fix
                     if (CIL.OpCode == CilOpCodes.Ldfld &&
                         CIL.Operand is MemberReference href &&
                         href.Signature is FieldSignature hsig &&
@@ -220,29 +220,6 @@ public class OxideILSwitch : BaseOxidePatch
                         CIL.OpCode = CilOpCodes.Call;
                         continue;
                     }
-
-                    // lang.GetMessage fix #blame raul https://github.com/CarbonCommunity/Carbon.Core/commit/ef572b68b989df687c3d764e31968ca3b239ab9e
-                    // moved to TypeRef
-                    /*if (CIL.OpCode == CilOpCodes.Callvirt &&
-                        CIL.Operand is MemberReference iref &&
-                        iref.Signature is MethodSignature isig &&
-                        iref.Parent is TypeReference itw &&
-                        itw.FullName == "Oxide.Core.Libraries.Lang" &&
-                        iref.Name == "GetMessage" &&
-                        carbonLangGetMessageArgLength != 3 &&
-                        isig.ParameterTypes.Count == 3 &&
-                        isig.ParameterTypes[0].ElementType == ElementType.String &&
-                        isig.ParameterTypes[1].FullName == "Carbon.Base.BaseHookable" &&
-                        isig.ParameterTypes[2].ElementType == ElementType.String &&
-                        itw.DefinitionAssembly().Name == CompatManager.Common.Name)
-                    {
-                        CIL.Operand = importer.ImportMethod(carbonLangGetMessage);
-                        for (int idx = 0; idx < carbonLangGetMessageArgLength-isig.ParameterTypes.Count; idx++)
-                        {
-                            body.Instructions.Insert(index++, new CilInstruction(CilOpCodes.Ldnull));
-
-                        }
-                    }*/
                 }
             }
         }
