@@ -222,7 +222,8 @@ public class OxideILSwitch : BaseOxidePatch
                     }
 
                     // lang.GetMessage fix #blame raul https://github.com/CarbonCommunity/Carbon.Core/commit/ef572b68b989df687c3d764e31968ca3b239ab9e
-                    if (CIL.OpCode == CilOpCodes.Callvirt &&
+                    // moved to TypeRef
+                    /*if (CIL.OpCode == CilOpCodes.Callvirt &&
                         CIL.Operand is MemberReference iref &&
                         iref.Signature is MethodSignature isig &&
                         iref.Parent is TypeReference itw &&
@@ -241,7 +242,7 @@ public class OxideILSwitch : BaseOxidePatch
                             body.Instructions.Insert(index++, new CilInstruction(CilOpCodes.Ldnull));
 
                         }
-                    }
+                    }*/
                 }
             }
         }
