@@ -66,6 +66,12 @@ public static partial class OxideCompat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string GetMessage1(global::Oxide.Core.Libraries.Lang lang, string key, Plugin plugin, string player)
+    {
+	    return lang.GetMessage(key, plugin, player);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AddConsoleCommand1(global::Oxide.Game.Rust.Libraries.Command cmd, string name, Plugin plugin, Func<ConsoleSystem.Arg, bool> callback)
     {
         cmd.AddConsoleCommand(name, plugin, callback);
