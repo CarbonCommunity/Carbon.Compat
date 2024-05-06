@@ -18,6 +18,11 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (HarmonyConverter.IsV2Harmony(asm))
+	    {
+		    return;
+	    }
+
         foreach (TypeDefinition type in asm.GetAllTypes())
         {
             bool invalid = false;
@@ -87,9 +92,11 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 
     public static void RegisterPatch(MethodBase method, string reason)
     {
+	    if(method== null)return;
+	    
 	    CurrentPatches.Add(new PatchInfoEntry(method));
     #if DEBUG
-	    Logger.Debug($"Found harmony patch {method.DeclaringType.Assembly.GetName().Name} - {method.DeclaringType.Name}::{method.Name} from {reason}");
+	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason}");
     #endif
     }
 
