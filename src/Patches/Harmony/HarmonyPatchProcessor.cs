@@ -44,7 +44,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
                 {
                     if (sig.FixedArguments.Count > 1 && sig.FixedArguments[0].Element is TypeDefOrRefSignature tr && sig.FixedArguments[1].Element is Utf8String ats)
                     {
-                        RegisterPatch(tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {type.FullName}");
+                        RegisterPatch(tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {type.FullName}", null);
 
                         if (!PatchWhitelist.IsPatchAllowed(tr, ats))
                         {
@@ -77,47 +77,25 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
         }
     }
 
-    public static void RegisterPatch(string assemblyName, string methodName, string typeName, string reason)
+    public static void RegisterPatch(string assemblyName, string methodName, string typeName, string reason, HarmonyLib.Harmony harmony)
     {
-	    CurrentPatches.Add(new PatchInfoEntry(assemblyName, methodName, typeName, reason));
+	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(assemblyName, methodName, typeName, reason, harmony));
     #if DEBUG
 	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason}");
     #endif
     }
 
-    public static void RegisterPatch(MethodBase method, string reason)
+    public static void RegisterPatch(MethodBase method, string reason, HarmonyLib.Harmony harmony)
     {
 	    if(method== null)return;
 
-	    CurrentPatches.Add(new PatchInfoEntry(method));
+	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method, harmony));
     #if DEBUG
 	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason}");
     #endif
     }
 
-    public class PatchInfoEntry
-    {
-        public string AssemblyName;
-        public string TypeName;
-        public string MethodName;
-        public string Reason;
-        public MethodBase runtime_method;
 
-        public PatchInfoEntry(string assemblyName, string methodName, string typeName, string reason)
-        {
-            this.AssemblyName = assemblyName;
-            this.MethodName = methodName;
-            this.TypeName = typeName;
-            this.Reason = reason;
-        }
-
-        public PatchInfoEntry(MethodBase method)
-        {
-	        this.runtime_method = method;
-        }
-    }
-
-    public static List<PatchInfoEntry> CurrentPatches = new();
 
     public static class PatchWhitelist
     {
