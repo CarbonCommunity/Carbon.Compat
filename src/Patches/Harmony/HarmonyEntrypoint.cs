@@ -41,38 +41,21 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 
         CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);
 
-        if (HarmonyConverter.IsV2Harmony(asm))
+        postHookLoad.CilMethodBody.Instructions.AddRange(new[]
         {
-	        postHookLoad.CilMethodBody.Instructions.AddRange(new[]
-	        {
-		        // load check
-		        new CilInstruction(CilOpCodes.Ldarg_0),
-		        new CilInstruction(CilOpCodes.Ldfld, loadedField),
-		        new CilInstruction(CilOpCodes.Brtrue_S, postHookRet.CreateLabel()),
-		        new CilInstruction(CilOpCodes.Ldarg_0),
-		        new CilInstruction(CilOpCodes.Ldc_I4_1),
-		        new CilInstruction(CilOpCodes.Stfld, loadedField),
-	        });
-        }
-        else
-        {
-	        postHookLoad.CilMethodBody.Instructions.AddRange(new[]
-	        {
-		        // load check
-		        new CilInstruction(CilOpCodes.Ldarg_0),
-		        new CilInstruction(CilOpCodes.Ldfld, loadedField),
-		        new CilInstruction(CilOpCodes.Brtrue_S, postHookRet.CreateLabel()),
-		        new CilInstruction(CilOpCodes.Ldarg_0),
-		        new CilInstruction(CilOpCodes.Ldc_I4_1),
-		        new CilInstruction(CilOpCodes.Stfld, loadedField),
+	        // load check
+	        new CilInstruction(CilOpCodes.Ldarg_0),
+	        new CilInstruction(CilOpCodes.Ldfld, loadedField),
+	        new CilInstruction(CilOpCodes.Brtrue_S, postHookRet.CreateLabel()),
+	        new CilInstruction(CilOpCodes.Ldarg_0),
+	        new CilInstruction(CilOpCodes.Ldc_I4_1),
+	        new CilInstruction(CilOpCodes.Stfld, loadedField),
 
-		        // harmony patch all
-		        new CilInstruction(CilOpCodes.Ldstr, $"__CCL:{asm.Assembly.Name}:{guid:N}"),
-		        new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), new Type[]{typeof(string)}))),
-		        new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
-	        });
-        }
-
+	        // harmony patch all
+	        new CilInstruction(CilOpCodes.Ldstr, $"__CCL:{asm.Assembly.Name}:{guid:N}"),
+	        new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), new Type[]{typeof(string)}))),
+	        new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
+        });
 
         if (entryPoints.Any())
         {
