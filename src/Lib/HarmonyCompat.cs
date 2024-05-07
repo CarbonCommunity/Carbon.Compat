@@ -125,7 +125,7 @@ public static class HarmonyCompat
 			if (pregen)
 			{
 				var assembly = type.Assembly.GetName().Name;
-				HarmonyPatchProcessor.RegisterPatch(assembly, original.DeclaringType.Assembly.GetName().Name, original.Name,
+				HarmonyPatchProcessor.RegisterPatch(assembly + ".dll", original.DeclaringType.Assembly.GetName().Name, original.Name,
 					original.DeclaringType.FullName, $"{assembly} - {type.FullName}", instance);
 
 				return;

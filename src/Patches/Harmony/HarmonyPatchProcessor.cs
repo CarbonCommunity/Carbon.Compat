@@ -89,7 +89,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
     {
 	    if(method== null)return;
 
-	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method.DeclaringType.Assembly.GetName().Name, method, harmony));
+	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method.DeclaringType.Assembly.GetName().Name + ".dll", method, harmony));
     #if DEBUG
 	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason} - {(harmony != null ? "valid" : "invalid")} harmony instance");
     #endif
