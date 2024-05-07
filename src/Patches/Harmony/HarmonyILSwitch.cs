@@ -84,7 +84,6 @@ public class HarmonyILSwitch : BaseHarmonyPatch
 	                    CIL.Operand = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat),
 		                    nameof(HarmonyCompat.InstancePatchCompat)));
 	                    CIL.OpCode = CilOpCodes.Call;
-
                     }
 
 					// not tested

@@ -44,7 +44,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
                 {
                     if (sig.FixedArguments.Count > 1 && sig.FixedArguments[0].Element is TypeDefOrRefSignature tr && sig.FixedArguments[1].Element is Utf8String ats)
                     {
-                        RegisterPatch(tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {type.FullName}", null);
+                        RegisterPatch(asm.Name.ToString(), tr.DefinitionAssembly().Name, ats, tr.FullName, $"{asm.Assembly.Name} - {type.FullName}", null);
 
                         if (!PatchWhitelist.IsPatchAllowed(tr, ats))
                         {
@@ -77,11 +77,11 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
         }
     }
 
-    public static void RegisterPatch(string assemblyName, string methodName, string typeName, string reason, HarmonyLib.Harmony harmony)
+    public static void RegisterPatch(string parentAssemblyName, string assemblyName, string methodName, string typeName, string reason, HarmonyLib.Harmony harmony)
     {
-	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(assemblyName, methodName, typeName, reason, harmony));
+	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(parentAssemblyName, assemblyName, methodName, typeName, reason, harmony));
     #if DEBUG
-	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason}");
+	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason} - {(harmony != null ? "valid" : "invalid")} harmony instance");
     #endif
     }
 
@@ -89,9 +89,9 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
     {
 	    if(method== null)return;
 
-	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method, harmony));
+	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method.DeclaringType.Assembly.GetName().Name, method, harmony));
     #if DEBUG
-	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason}");
+	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason} - {(harmony != null ? "valid" : "invalid")} harmony instance");
     #endif
     }
 
