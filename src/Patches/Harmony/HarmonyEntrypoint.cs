@@ -19,7 +19,7 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
-	    if (context.noEntrypoint) return;
+	    if (context.NoEntrypoint) return;
         Guid guid = Guid.NewGuid();
         IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "Carbon.Compat.Lib.HarmonyCompat+IHarmonyModHooks"));
 
@@ -40,20 +40,21 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
         load.CilMethodBody.Instructions.Add(new CilInstruction(CilOpCodes.Ret));
 
         CilInstruction postHookRet = new CilInstruction(CilOpCodes.Ret);
+
         postHookLoad.CilMethodBody.Instructions.AddRange(new[]
         {
-            // load check
-            new CilInstruction(CilOpCodes.Ldarg_0),
-            new CilInstruction(CilOpCodes.Ldfld, loadedField),
-            new CilInstruction(CilOpCodes.Brtrue_S, postHookRet.CreateLabel()),
-            new CilInstruction(CilOpCodes.Ldarg_0),
-            new CilInstruction(CilOpCodes.Ldc_I4_1),
-            new CilInstruction(CilOpCodes.Stfld, loadedField),
+	        // load check
+	        new CilInstruction(CilOpCodes.Ldarg_0),
+	        new CilInstruction(CilOpCodes.Ldfld, loadedField),
+	        new CilInstruction(CilOpCodes.Brtrue_S, postHookRet.CreateLabel()),
+	        new CilInstruction(CilOpCodes.Ldarg_0),
+	        new CilInstruction(CilOpCodes.Ldc_I4_1),
+	        new CilInstruction(CilOpCodes.Stfld, loadedField),
 
-            // harmony patch all
-            new CilInstruction(CilOpCodes.Ldstr, $"__CCL:{asm.Assembly.Name}:{guid:N}"),
-            new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), new Type[]{typeof(string)}))),
-            new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
+	        // harmony patch all
+	        new CilInstruction(CilOpCodes.Ldstr, $"__CCL:{asm.Assembly.Name}:{guid:N}"),
+	        new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), new Type[]{typeof(string)}))),
+	        new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
         });
 
         if (entryPoints.Any())

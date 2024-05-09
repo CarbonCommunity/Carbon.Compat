@@ -44,4 +44,11 @@ public class HarmonyConverter : BaseConverter
     }.ToImmutableList();
 
     public override string Name => "HarmonyMod";
+
+    public static readonly Version V2 = new(2, 0, 0);
+
+    public static bool IsV2Harmony(ModuleDefinition asm)
+    {
+	    return asm.AssemblyReferences.Any(x => x.Name == "0Harmony" && x.Version > V2);
+    }
 }
