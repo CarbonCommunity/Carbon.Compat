@@ -16,6 +16,11 @@ public class HarmonyILSwitch : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
+	    if (HarmonyConverter.IsV2Harmony(asm))
+	    {
+		    return;
+	    }
+
         IMethodDescriptor PatchProcessorCompatRef = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat), nameof(HarmonyCompat.PatchProcessorCompat)));
 
         foreach (TypeDefinition type in asm.GetAllTypes())
@@ -79,7 +84,6 @@ public class HarmonyILSwitch : BaseHarmonyPatch
 	                    CIL.Operand = importer.ImportMethod(AccessTools.Method(typeof(HarmonyCompat),
 		                    nameof(HarmonyCompat.InstancePatchCompat)));
 	                    CIL.OpCode = CilOpCodes.Call;
-
                     }
 
 					// not tested
