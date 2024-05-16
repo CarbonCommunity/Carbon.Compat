@@ -48,6 +48,8 @@ public abstract class BaseConverter
     public struct Context
     {
 	    public string Author;
-	    public bool noEntrypoint;
+	    public bool NoEntrypoint;
+	    public byte[] Buffer;
+	    public bool V2Harmony;
     }
 }

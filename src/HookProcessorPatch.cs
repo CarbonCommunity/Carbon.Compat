@@ -31,7 +31,7 @@ internal static class HookProcessor
 			string typeName = cache.DeclaringType.FullName;
 			string methodName = cache.Name;
 
-			HarmonyPatchProcessor.PatchInfoEntry patchInfo = HarmonyPatchProcessor.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
+			Components.Harmony.PatchInfoEntry patchInfo = Components.Harmony.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
 
 			if (patchInfo == null)
 			{
@@ -65,7 +65,7 @@ internal static class HookProcessor
             string typeName = cache.DeclaringType.FullName;
             string methodName = cache.Name;
 
-            HarmonyPatchProcessor.PatchInfoEntry patchInfo = HarmonyPatchProcessor.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
+            Components.Harmony.PatchInfoEntry patchInfo = Components.Harmony.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
 
             if (patchInfo == null)
             {

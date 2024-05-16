@@ -67,7 +67,7 @@ public static class HarmonyCompat
 	public static DynamicMethod InstancePatchCompat(Harmony instance, MethodBase original, HarmonyMethod prefix = null, HarmonyMethod postfix = null, HarmonyMethod transpiler = null)
 	{
 		MethodBase calling = new StackTrace().GetFrame(1).GetMethod();
-		HarmonyPatchProcessor.RegisterPatch(original, $"{calling.DeclaringType.Assembly.GetName().Name} - {calling}");
+		HarmonyPatchProcessor.RegisterPatch(original, $"{calling.DeclaringType.Assembly.GetName().Name} - {calling}", instance);
 		HookProcessor.HookReload();
 		instance.Patch(original, prefix, postfix, transpiler);
 		return null;
@@ -124,8 +124,9 @@ public static class HarmonyCompat
 		{
 			if (pregen)
 			{
-				HarmonyPatchProcessor.RegisterPatch(original.DeclaringType.Assembly.GetName().Name, original.Name,
-					original.DeclaringType.FullName, $"{type.Assembly.GetName().Name} - {type.FullName}");
+				var assembly = type.Assembly.GetName().Name;
+				HarmonyPatchProcessor.RegisterPatch(assembly + ".dll", original.DeclaringType.Assembly.GetName().Name, original.Name,
+					original.DeclaringType.FullName, $"{assembly} - {type.FullName}", instance);
 
 				return;
 			}

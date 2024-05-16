@@ -53,9 +53,11 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	    try
 	    {
-		    buffer = converter.Convert(md, new BaseConverter.Context
-			    {noEntrypoint = noEntrypoint}
-		    ); //, out BaseConverter.GenInfo info);
+		    BaseConverter.Context context = default;
+		    context.Buffer = buffer;
+		    context.NoEntrypoint = noEntrypoint;
+
+		    buffer = converter.Convert(md, context); //, out BaseConverter.GenInfo info);
 	    }
 	    catch (Exception ex)
 	    {
