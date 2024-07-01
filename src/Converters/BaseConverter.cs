@@ -22,7 +22,7 @@ public abstract class BaseConverter
     internal static ManagedPEImageBuilder _imageBuilder = new ManagedPEImageBuilder();
     internal static ManagedPEFileBuilder _fileBuilder = new ManagedPEFileBuilder();
 
-    public byte[] Convert(ModuleDefinition asm, Context ctx = default)
+    public virtual byte[] Convert(ModuleDefinition asm, Context ctx = default)
     {
         ReferenceImporter importer = new ReferenceImporter(asm);
 
@@ -50,6 +50,5 @@ public abstract class BaseConverter
 	    public string Author;
 	    public bool NoEntrypoint;
 	    public byte[] Buffer;
-	    public bool V2Harmony;
     }
 }

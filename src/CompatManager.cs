@@ -51,12 +51,12 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	    md.DebugData.Clear();
 
+	    BaseConverter.Context context = default;
+	    context.Buffer = buffer;
+	    context.NoEntrypoint = noEntrypoint;
+
 	    try
 	    {
-		    BaseConverter.Context context = default;
-		    context.Buffer = buffer;
-		    context.NoEntrypoint = noEntrypoint;
-
 		    buffer = converter.Convert(md, context); //, out BaseConverter.GenInfo info);
 	    }
 	    catch (Exception ex)
@@ -66,7 +66,14 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 		    return false;
 	    }
 
-	    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+	    if (buffer == context.Buffer)
+	    {
+		    Logger.Log($" {converter.Name} assembly doesn't need any conversion [for '{md.Name}'], skipping..");
+	    }
+	    else
+	    {
+		    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+	    }
 
 	    stopwatch.Reset();
 	    Pool.Free(ref stopwatch);
