@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using Carbon.Compat.Patches;
 using Carbon.Compat.Patches.Harmony;
 using Carbon.Compat.Patches.Oxide;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Carbon.Compat.Converters;
 
@@ -50,5 +52,15 @@ public class HarmonyConverter : BaseConverter
     public static bool IsV2Harmony(ModuleDefinition asm)
     {
 	    return asm.AssemblyReferences.Any(x => x.Name == "0Harmony" && x.Version > V2);
+    }
+
+    public override byte[] Convert(ModuleDefinition asm, Context ctx = default)
+    {
+	    return asm.AssemblyReferences.Any(x =>
+	    {
+		    var name = x.Name.ToString();
+		    return name.Contains("oxide", CompareOptions.OrdinalIgnoreCase) ||
+		           (name.Equals("0harmony", StringComparison.OrdinalIgnoreCase) && x.Version.Major < 2);
+	    }) ? base.Convert(asm, ctx) : ctx.Buffer;
     }
 }
