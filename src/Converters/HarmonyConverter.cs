@@ -54,6 +54,7 @@ public class HarmonyConverter : BaseConverter
 	    return asm.AssemblyReferences.Any(x => x.Name == "0Harmony" && x.Version > V2);
     }
 
+    /*
     public override byte[] Convert(ModuleDefinition asm, Context ctx = default)
     {
 	    return asm.AssemblyReferences.Any(x =>
@@ -63,4 +64,5 @@ public class HarmonyConverter : BaseConverter
 		           (name.Equals("0harmony", StringComparison.OrdinalIgnoreCase) && x.Version.Major < 2);
 	    }) ? base.Convert(asm, ctx) : ctx.Buffer;
     }
+    */
 }
