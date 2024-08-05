@@ -1,16 +1,17 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using Carbon.Compat.Patches;
 using Carbon.Compat.Patches.Harmony;
 using Carbon.Compat.Patches.Oxide;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Carbon.Compat.Converters;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2023-2024 Patrette
- * All rights reserved.
+ * Copyright (c) 2023-2024 Patrette, under the GNU v3 license rights
+ * Copyright (c) 2023-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
@@ -51,4 +52,16 @@ public class HarmonyConverter : BaseConverter
     {
 	    return asm.AssemblyReferences.Any(x => x.Name == "0Harmony" && x.Version > V2);
     }
+
+    /*
+    public override byte[] Convert(ModuleDefinition asm, Context ctx = default)
+    {
+	    return asm.AssemblyReferences.Any(x =>
+	    {
+		    var name = x.Name.ToString();
+		    return name.Contains("oxide", CompareOptions.OrdinalIgnoreCase) ||
+		           (name.Equals("0harmony", StringComparison.OrdinalIgnoreCase) && x.Version.Major < 2);
+	    }) ? base.Convert(asm, ctx) : ctx.Buffer;
+    }
+    */
 }

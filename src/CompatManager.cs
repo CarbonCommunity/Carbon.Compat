@@ -16,9 +16,8 @@ namespace Carbon.Compat;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2023-2024 Patrette
- * All rights reserved.
+ * Copyright (c) 2023-2024 Patrette, under the GNU v3 license rights
+ * Copyright (c) 2023-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
@@ -51,12 +50,12 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	    md.DebugData.Clear();
 
+	    BaseConverter.Context context = default;
+	    context.Buffer = buffer;
+	    context.NoEntrypoint = noEntrypoint;
+
 	    try
 	    {
-		    BaseConverter.Context context = default;
-		    context.Buffer = buffer;
-		    context.NoEntrypoint = noEntrypoint;
-
 		    buffer = converter.Convert(md, context); //, out BaseConverter.GenInfo info);
 	    }
 	    catch (Exception ex)
@@ -66,7 +65,14 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 		    return false;
 	    }
 
-	    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+	    if (buffer == context.Buffer)
+	    {
+		    Logger.Log($" {converter.Name} assembly doesn't need any conversion [for '{md.Name}'], skipping..");
+	    }
+	    else
+	    {
+		    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+	    }
 
 	    stopwatch.Reset();
 	    Pool.Free(ref stopwatch);
