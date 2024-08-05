@@ -11,9 +11,8 @@ namespace Carbon.Compat.Lib;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2023-2024 Patrette
- * All rights reserved.
+ * Copyright (c) 2023-2024 Patrette, under the GNU v3 license rights
+ * Copyright (c) 2023-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
@@ -22,7 +21,7 @@ public static partial class OxideCompat
 {
 	internal const string LEGACY_MSG = "Used for oxide backwards compatibility";
 
-    internal static Dictionary<Assembly, ModLoader.ModPackage> modPackages = new();
+    internal static Dictionary<Assembly, ModLoader.Package> modPackages = new();
 
     public static void RegisterPluginLoader(ExtensionManager self, PluginLoader loader, Extension oxideExt)
     {
@@ -35,10 +34,10 @@ public static partial class OxideCompat
         string name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;
         string author = oxideExt != null ? oxideExt.Author : "Carbon.Compat";
 
-        if (!modPackages.TryGetValue(asm, out ModLoader.ModPackage package))
+        if (!modPackages.TryGetValue(asm, out ModLoader.Package package))
         {
 	        ModLoader.RegisterPackage(package = modPackages[asm] =
-		        ModLoader.ModPackage.Get($"{name} - {author} (Oxide Extension)", false));
+		        ModLoader.Package.Get($"{name} - {author} (Oxide Extension)", false));
         }
         foreach (Type type in loader.CorePlugins)
         {

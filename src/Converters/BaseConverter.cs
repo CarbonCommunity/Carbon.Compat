@@ -7,9 +7,8 @@ namespace Carbon.Compat.Converters;
 
 /*
  *
- * Copyright (c) 2022-2024 Carbon Community
- * Copyright (c) 2023-2024 Patrette
- * All rights reserved.
+ * Copyright (c) 2023-2024 Patrette, under the GNU v3 license rights
+ * Copyright (c) 2023-2024 Carbon Community, under the GNU v3 license rights
  *
  */
 
@@ -22,7 +21,7 @@ public abstract class BaseConverter
     internal static ManagedPEImageBuilder _imageBuilder = new ManagedPEImageBuilder();
     internal static ManagedPEFileBuilder _fileBuilder = new ManagedPEFileBuilder();
 
-    public byte[] Convert(ModuleDefinition asm, Context ctx = default)
+    public virtual byte[] Convert(ModuleDefinition asm, Context ctx = default)
     {
         ReferenceImporter importer = new ReferenceImporter(asm);
 
@@ -50,6 +49,5 @@ public abstract class BaseConverter
 	    public string Author;
 	    public bool NoEntrypoint;
 	    public byte[] Buffer;
-	    public bool V2Harmony;
     }
 }
