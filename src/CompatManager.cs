@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using API.Abstracts;
 using API.Assembly;
@@ -75,7 +75,7 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    }
 
 	    stopwatch.Reset();
-	    Pool.Free(ref stopwatch);
+	    Pool.FreeUnsafe(ref stopwatch);
 
 #if DEBUG
 	    string dir = Path.Combine(Defines.GetTempFolder(), "compat_debug_gen");
