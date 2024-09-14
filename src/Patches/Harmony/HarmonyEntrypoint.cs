@@ -1,4 +1,4 @@
-using API.Events;
+﻿using API.Events;
 using Carbon.Compat.Converters;
 using Carbon.Compat.Lib;
 using HarmonyLib;
@@ -52,7 +52,7 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 
 	        // harmony patch all
 	        new CilInstruction(CilOpCodes.Ldstr, $"__CCL:{asm.Assembly.Name}:{guid:N}"),
-	        new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), new Type[]{typeof(string)}))),
+	        new CilInstruction(CilOpCodes.Newobj, importer.ImportMethod(AccessTools.Constructor(typeof(HarmonyLib.Harmony), [typeof(string)]))),
 	        new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
         });
 
