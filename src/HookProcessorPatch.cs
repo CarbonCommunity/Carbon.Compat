@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using API.Events;
 using API.Hooks;
 using Carbon.Compat.Patches.Harmony;
@@ -32,7 +32,7 @@ internal static class HookProcessor
 
 			Components.Harmony.PatchInfoEntry patchInfo = Components.Harmony.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
 
-			if (patchInfo == null)
+			if (patchInfo.Harmony == null)
 			{
 				continue;
 			}
@@ -66,7 +66,7 @@ internal static class HookProcessor
 
             Components.Harmony.PatchInfoEntry patchInfo = Components.Harmony.CurrentPatches.FirstOrDefault(x => x.AssemblyName == asmName && x.TypeName == typeName && x.MethodName == methodName);
 
-            if (patchInfo == null)
+            if (patchInfo.Harmony == null)
             {
 	            continue;
             }

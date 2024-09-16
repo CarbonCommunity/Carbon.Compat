@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using AsmResolver;
 using AsmResolver.DotNet.Serialized;
 using Carbon.Compat.Converters;
@@ -21,7 +21,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
         {
             bool invalid = false;
 
-            List<CustomAttribute> patches = Pool.GetList<CustomAttribute>();
+            List<CustomAttribute> patches = Pool.Get<List<CustomAttribute>>();
 
             foreach (CustomAttribute attr in type.CustomAttributes)
             {
@@ -73,6 +73,8 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
                     type.CustomAttributes.Remove(attr);
                 }
             }
+
+			Pool.FreeUnmanaged(ref patches);
         }
     }
 
