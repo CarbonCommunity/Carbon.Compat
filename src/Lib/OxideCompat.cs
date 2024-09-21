@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using Carbon.Core;
 using JetBrains.Annotations;
@@ -55,6 +55,7 @@ public static partial class OxideCompat
                         if (rustPlugin.Author == "Carbon.Compat" && !string.IsNullOrWhiteSpace(oxideExt.Author))
                             rustPlugin.Author = oxideExt.Author;
                     });
+				plugin.IsCorePlugin = true;
                 plugin.IsExtension = true;
             }
             catch (Exception e)
