@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -91,28 +91,19 @@ public static class HarmonyCompat
 		MethodInfo transpiler = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyTranspiler), false).Length > 0);
 		MethodInfo patchTargetMethod = methods.FirstOrDefault(x =>
 			x.GetCustomAttributes(typeof(HarmonyTargetMethods), false).Length > 0 ||
-			x.GetCustomAttributes(typeof(HarmonyTargetMethod), false).Length > 0);
-
-		if (patchTargetMethod == null)
-		{
-			throw new NullReferenceException($"Failed to find target method in {type.FullName}");
-		}
-
+			x.GetCustomAttributes(typeof(HarmonyTargetMethod), false).Length > 0) ?? throw new NullReferenceException($"Failed to find target method in {type.FullName}");
 		IEnumerable<MethodBase> methodsToPatch = null;
 		MethodBase single = null;
 
 		if (patchTargetMethod.ReturnType == typeof(IEnumerable<MethodBase>))
 		{
 			methodsToPatch = ((IEnumerable<MethodBase>)patchTargetMethod.Invoke(null,
-				patchTargetMethod.GetParameters().Length > 0 ? new object[1] : Array.Empty<object>()));
+				patchTargetMethod.GetParameters().Length > 0 ? [ null ] : []));
 		}
 		else if (patchTargetMethod.ReturnType == typeof(MethodBase))
 		{
 			single = (MethodBase)patchTargetMethod.Invoke(null,
-				patchTargetMethod.GetParameters().Length > 0 ? new object[]
-				{
-					null
-				} : Array.Empty<object>());
+				patchTargetMethod.GetParameters().Length > 0 ? [ null ] : []);
 		}
 		else
 		{
