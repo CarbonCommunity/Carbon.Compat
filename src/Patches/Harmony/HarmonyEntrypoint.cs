@@ -18,9 +18,13 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 {
     public override void Apply(ModuleDefinition asm, ReferenceImporter importer, ref BaseConverter.Context context)
     {
-	    if (context.NoEntrypoint) return;
+	    if (context.NoEntrypoint)
+		{
+			return;
+		}
+
         Guid guid = Guid.NewGuid();
-        IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "Carbon.Compat.Lib.HarmonyCompat+IHarmonyModHooks"));
+        IEnumerable<TypeDefinition> entryPoints = asm.GetAllTypes().Where(x => x.Interfaces.Any(y=>y.Interface?.FullName == "IHarmonyModHooks"));
 
         CodeGenHelpers.GenerateEntrypoint(asm, importer, HarmonyStr, guid, out MethodDefinition load, out MethodDefinition unload, out TypeDefinition entryDef);
 
@@ -56,13 +60,6 @@ public class HarmonyEntrypoint : BaseHarmonyPatch
 	        new CilInstruction(CilOpCodes.Callvirt, importer.ImportMethod(AccessTools.Method(typeof(HarmonyLib.Harmony), "PatchAll")))
         });
 
-        if (entryPoints.Any())
-        {
-	        IMethodDescriptor loadMethod = importer.ImportMethod(typeof(HarmonyCompat.IHarmonyModHooks).GetMethod("OnLoaded"));
-
-            int multiCallIndex = postHookLoad.CilMethodBody.Instructions.Count;
-            CodeGenHelpers.DoMultiMethodCall(postHookLoad.CilMethodBody, ref multiCallIndex, null, entryPoints, loadMethod);
-        }
         postHookLoad.CilMethodBody.Instructions.Add(postHookRet);
         entryDef.Methods.Add(postHookLoad);
         entryDef.Fields.Add(loadedField);
