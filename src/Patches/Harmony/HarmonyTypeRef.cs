@@ -1,4 +1,4 @@
-using Carbon.Compat.Converters;
+﻿using Carbon.Compat.Converters;
 using Carbon.Compat.Lib;
 
 namespace Carbon.Compat.Patches.Harmony;
@@ -29,12 +29,6 @@ public class HarmonyTypeRef : BaseHarmonyPatch
                 {
                     type.Name = "Harmony";
                 }
-            }
-
-            if (reference != null && reference.Name == "Rust.Harmony")
-            {
-                type.Namespace = $"Carbon.Compat.Lib";
-                type.Scope = (IResolutionScope)importer.ImportType(typeof(HarmonyCompat));
             }
         }
     }
