@@ -18,50 +18,6 @@ namespace Carbon.Compat.Lib;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public static class HarmonyCompat
 {
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public static class HarmonyLoader
-	{
-		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public class HarmonyMod
-		{
-			public string Name { get; set; }
-
-			public string HarmonyId { get; set; }
-
-			public Harmony Harmony { get; set; }
-
-			public Assembly Assembly { get; set; }
-
-			public Type[] AllTypes { get; set; }
-
-			public List<IHarmonyModHooks> Hooks { get; } = new();
-		}
-
-		public static List<HarmonyMod> loadedMods = new();
-	}
-
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public struct HarmonyModInfo
-	{
-		public string Name;
-		public string Version;
-	}
-
-	public class OnHarmonyModLoadedArgs
-	{
-	}
-
-	public class OnHarmonyModUnloadedArgs
-	{
-	}
-
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public interface IHarmonyModHooks
-	{
-		public void OnLoaded(OnHarmonyModLoadedArgs args);
-		public void OnUnloaded(OnHarmonyModUnloadedArgs args);
-	}
-
 	[MethodImpl(MethodImplOptions.NoInlining)]
 	public static DynamicMethod InstancePatchCompat(Harmony instance, MethodBase original, HarmonyMethod prefix = null, HarmonyMethod postfix = null, HarmonyMethod transpiler = null)
 	{
