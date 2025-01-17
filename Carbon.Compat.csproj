@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<Product>Carbon.Compat</Product>
 		<OutputType>Library</OutputType>
-		<ProjectGuid>{30B4B72A-9E9A-422D-9FDE-98DDD677B1AE}</ProjectGuid>
 	</PropertyGroup>
 
 	<Import Project="$(SolutionDir)\.msbuild\Common.props" />
