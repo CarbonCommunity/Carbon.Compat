@@ -126,9 +126,9 @@ public class OxideTypeRef : BaseOxidePatch
 
         if (type.Scope is TypeReference parent)
         {
-            if (parent.FullName is "Oxide.Plugins.Timers" or "Oxide.Plugins.Timer" && type.Name == "TimerInstance")
+            if (parent.FullName is "Oxide.Plugins.PluginTimers" && type.Name == "TimerInstance")
             {
-                type.Name = "Timer";
+                type.Name = "TimerInstance";
                 type.Namespace = "Oxide.Plugins";
                 type.Scope = CompatManager.Common.ImportWith(importer);
                 return;
@@ -189,13 +189,6 @@ public class OxideTypeRef : BaseOxidePatch
         if (type.FullName == "Oxide.Plugins.Hash`2")
         {
 	        type.Namespace = string.Empty;
-	        goto common;
-        }
-
-        if (type.FullName is "Oxide.Core.Libraries.Timer" or "Oxide.Plugins.PluginTimers")
-        {
-	        type.Name = "Timers";
-	        type.Namespace = "Oxide.Plugins";
 	        goto common;
         }
 

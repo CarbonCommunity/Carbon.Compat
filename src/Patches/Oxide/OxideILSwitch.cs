@@ -173,7 +173,7 @@ public class OxideILSwitch : BaseOxidePatch
                         continue;
                     }
 
-                    // change GetLibrary<Oxide.Plugins.Timers> to this.timer
+                    // change GetLibrary<Oxide.Plugins.PluginTimers> to this.timer
                     if (isRustPluginInstance && CIL.OpCode == CilOpCodes.Callvirt &&
                         CIL.Operand is MethodSpecification gspec &&
                         gspec.Method is MemberReference gref &&
@@ -181,7 +181,7 @@ public class OxideILSwitch : BaseOxidePatch
                         gref.Name == "GetLibrary" &&
                         gtw.FullName == "Oxide.Core.OxideMod" &&
                         gspec.Signature.TypeArguments.Count == 1 &&
-                        gspec.Signature.TypeArguments[0].FullName == "Oxide.Plugins.Timers" &&
+                        gspec.Signature.TypeArguments[0].FullName == "Oxide.Plugins.PluginTimers" &&
                         gtw.DefinitionAssembly().Name == CompatManager.Common.Name)
                     {
                         CIL.OpCode = CilOpCodes.Pop;
