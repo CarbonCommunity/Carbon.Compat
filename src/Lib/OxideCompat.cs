@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Oxide.Core.Extensions;
 using Oxide.Core.Plugins;
 using Oxide.Plugins;
+using Timer = Oxide.Plugins.Timer;
 
 namespace Carbon.Compat.Lib;
 
@@ -95,13 +96,13 @@ public static partial class OxideCompat
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerOnce(PluginTimers timers, float delay, Action callback, Plugin owner = null)
+    public static Timer TimerOnce(Timers timers, float delay, Action callback, Plugin owner = null)
     {
         return timers.Once(delay, callback);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Timer TimerRepeat(PluginTimers timers, float delay, int reps, Action callback, Plugin owner = null)
+    public static Timer TimerRepeat(Timers timers, float delay, int reps, Action callback, Plugin owner = null)
     {
         return timers.Repeat(delay, reps, callback);
     }
