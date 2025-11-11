@@ -124,10 +124,13 @@ public class OxideTypeRef : BaseOxidePatch
 		    return;
 	    }
 
-	    if (type.FullName is "Oxide.Core.Libraries")
-	    {
-		    goto common;
-	    }
+        if (type.Scope is TypeReference parent)
+        {
+            if (parent.FullName is "Oxide.Core.Libraries.Timer")
+            {
+                goto common;
+            }
+        }
 
         if (type.Scope is not AssemblyReference aref || !Helpers.IsOxideASM(aref))
         {
