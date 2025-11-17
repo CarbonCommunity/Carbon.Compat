@@ -67,11 +67,11 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 
 	    if (buffer == context.Buffer)
 	    {
-		    Logger.Log($" {converter.Name} assembly doesn't need any conversion [for '{md.Name}'], skipping..");
+		    Logger.Log($"{converter.Name} assembly doesn't need any conversion [for '{md.Name}'], skipping..");
 	    }
 	    else
 	    {
-		    Logger.Log($" {converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
+		    Logger.Log($"{converter.Name} assembly conversion for '{md.Name}' took {stopwatch.ElapsedMilliseconds:0}ms");
 	    }
 
 	    stopwatch.Reset();
