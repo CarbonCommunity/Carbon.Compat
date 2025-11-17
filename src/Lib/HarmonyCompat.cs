@@ -39,8 +39,6 @@ public static class HarmonyCompat
 
 		typeCache.Add(type);
 
-		Logger.Debug("HarmonyCompat", $":START: Patching {type.FullName} using {instance.Id}\n\n");
-
 		MethodInfo[] methods = type.GetMethods();
 		MethodInfo postfix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPostfix), false).Length > 0);
 		MethodInfo prefix = methods.FirstOrDefault(x => x.GetCustomAttributes(typeof(HarmonyPrefix), false).Length > 0);
@@ -79,8 +77,6 @@ public static class HarmonyCompat
 
 			try
 			{
-				Logger.Debug("HarmonyCompat", $"Patching '{(original.DeclaringType == null ? "NULL" : original.DeclaringType.FullName)}' of '{original.Name}'");
-
 				if (!original.IsDeclaredMember())
 				{
 					original = original.GetDeclaredMember();
@@ -90,19 +86,16 @@ public static class HarmonyCompat
 
 				if (postfix != null)
 				{
-					Logger.Debug("HarmonyCompat","> postfix", 2);
 					patcher.AddPostfix(postfix);
 				}
 
 				if (prefix != null)
 				{
-					Logger.Debug("HarmonyCompat","> prefix", 2);
 					patcher.AddPrefix(prefix);
 				}
 
 				if (transpiler != null)
 				{
-					Logger.Debug("HarmonyCompat","> transpiler", 2);
 					patcher.AddTranspiler(transpiler);
 				}
 
@@ -120,10 +113,6 @@ public static class HarmonyCompat
 
 		if (methodsToPatch != null)
 		{
-			if (methodsToPatch.Any() && !pregen)
-			{
-				Logger.Debug("HarmonyCompat", $"Bulk patching {methodsToPatch.Count():n0} methods");
-			}
 			foreach (MethodBase original in methodsToPatch)
 			{
 				ProcessType(original, pregen);
@@ -140,7 +129,5 @@ public static class HarmonyCompat
 			HookProcessor.HookReload();
 			goto loop;
 		}
-
-		Logger.Debug("HarmonyCompat", $"Patch '{type.FullName}' complete with domain '{instance.Id}'");
 	}
 }

@@ -28,7 +28,6 @@ public static partial class OxideCompat
         self.RegisterPluginLoader(loader);
 
         string asmName = Assembly.GetCallingAssembly().GetName().Name;
-        Logger.Debug($"Oxide plugin loader call using {loader.GetType().FullName} from assembly {asmName}", 2);
 
         Assembly asm = oxideExt != null ? oxideExt.GetType().Assembly : loader.GetType().Assembly;
         string name = oxideExt != null ? oxideExt.Name : asm.GetName().Name;

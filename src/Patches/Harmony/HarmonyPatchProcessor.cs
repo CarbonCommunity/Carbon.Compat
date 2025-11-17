@@ -81,9 +81,6 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
     public static void RegisterPatch(string parentAssemblyName, string assemblyName, string methodName, string typeName, string reason, HarmonyLib.Harmony harmony)
     {
 	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(parentAssemblyName, assemblyName, methodName, typeName, reason, harmony));
-    #if DEBUG
-	    Logger.Debug($"Found harmony patch {assemblyName} - {typeName}::{methodName} from {reason} - {(harmony != null ? "valid" : "invalid")} harmony instance");
-    #endif
     }
 
     public static void RegisterPatch(MethodBase method, string reason, HarmonyLib.Harmony harmony)
@@ -91,12 +88,7 @@ public class HarmonyPatchProcessor : BaseHarmonyPatch
 	    if(method== null)return;
 
 	    Components.Harmony.CurrentPatches.Add(new Components.Harmony.PatchInfoEntry(method.DeclaringType.Assembly.GetName().Name + ".dll", method, harmony));
-    #if DEBUG
-	    Logger.Debug($"Found harmony patch {method?.DeclaringType?.Assembly?.GetName()?.Name} - {method?.DeclaringType?.Name}::{method?.Name} from {reason} - {(harmony != null ? "valid" : "invalid")} harmony instance");
-    #endif
     }
-
-
 
     public static class PatchWhitelist
     {

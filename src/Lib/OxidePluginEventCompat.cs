@@ -35,8 +35,6 @@ public partial class OxideCompat
         PluginManagerEvent ev;
 
         ev = (loaded ? plugin.OnAddedToManager : plugin.OnRemovedFromManager) as PluginManagerEvent;
-
-        Logger.Debug($"Calling {(loaded ? "loaded" : "unloaded")} event for plugin {plugin.Name}", 2);
         ev?.Invoke(plugin, plugin.Manager);
     }
 

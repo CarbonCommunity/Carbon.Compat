@@ -16,8 +16,6 @@ internal static class HookProcessor
 {
 	public static void HookClear()
 	{
-		Logger.Debug("Unprocessing dynamic hooks", 2);
-
 		foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
 		{
 			if (hook.TargetMethods.Count == 0)
@@ -46,14 +44,8 @@ internal static class HookProcessor
 
     public static void HookReload()
     {
-        Logger.Debug("Processing dynamic hooks", 2);
-
         foreach (IHook hook in Community.Runtime.HookManager.LoadedDynamicHooks)
         {
-#if DEBUG
-	        Logger.Debug($"Found dyn hooky: {hook.HookFullName}", 2);
-#endif
-
 	        if (hook == null || hook.TargetMethods == null || hook.TargetMethods.Count == 0)
 	        {
 		        return;
@@ -70,10 +62,6 @@ internal static class HookProcessor
             {
 	            continue;
             }
-
-#if DEBUG
-            Logger.Debug($"{patchInfo.Reason} Forcing hook {hook.TargetMethods[0]} to static", 2);
-#endif
 
             if ((hook.Options & HookFlags.Patch) != HookFlags.Patch)
             {
