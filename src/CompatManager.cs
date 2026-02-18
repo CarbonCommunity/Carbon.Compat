@@ -62,7 +62,9 @@ public class CompatManager : CarbonBehaviour, ICompatManager
 	    {
 		    Logger.Error($"Failed to convert assembly {md.Name}", ex);
 		    buffer = null;
-		    return false;
+			stopwatch.Reset();
+			Pool.FreeUnsafe(ref stopwatch);
+			return false;
 	    }
 
 	    if (buffer == context.Buffer)

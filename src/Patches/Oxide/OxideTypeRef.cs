@@ -1,4 +1,4 @@
-using Carbon.Base;
+﻿using Carbon.Base;
 using Carbon.Compat.Converters;
 using Carbon.Compat.Legacy.EventCompat;
 using Carbon.Compat.Lib;
@@ -105,15 +105,19 @@ public class OxideTypeRef : BaseOxidePatch
             {
                 CustomAttribute attr = list[x];
 
-                for (int y = 0; y < attr.Signature?.FixedArguments.Count; y++)
-                {
-                    CustomAttributeArgument arg = attr.Signature.FixedArguments[y];
-                    if (arg.Element is TypeDefOrRefSignature sig)
-                    {
-                        ProcessTypeRef(sig.Type as TypeReference, importer);
-                    }
-                }
-            }
+				try
+				{
+					for (int y = 0; y < attr.Signature?.FixedArguments.Count; y++)
+					{
+						CustomAttributeArgument arg = attr.Signature.FixedArguments[y];
+						if (arg.Element is TypeDefOrRefSignature sig)
+						{
+							ProcessTypeRef(sig.Type as TypeReference, importer);
+						}
+					}
+				}
+				catch { } // Ignore
+			}
         }
     }
 
